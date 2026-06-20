@@ -1,0 +1,75 @@
+name: Playwright E2E
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '0 5 * * *'
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: E2E + Python Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+
+      - name: Health Check
+        run: |
+          curl --retry 5 --retry-delay 10 --max-time 15 \
+            "${{ vars.BASE_URL || 'https://opensource-demo.orangehrmlive.com' }}" \
+            -o /dev/null -w "%{http_code}" -s
+
+      - name: Run Playwright smoke tests
+        run: npx playwright test --project=smoke
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Python deps
+        run: |
+          pip install playwright pytest
+          python3 -m playwright install chromium --with-deps
+
+      - name: Run Python tests
+        run: python3 -m pytest python_api_tests/ -v
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: test-results
+          path: test-results/
+
+  full:
+    name: Full Suite (TypeScript)
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test --project=chromium
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: full-results
+          path: test-results/

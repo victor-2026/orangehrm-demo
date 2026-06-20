@@ -1,0 +1,32 @@
+{
+  "name": "orangehrm",
+  "version": "1.0.0",
+  "description": "OrangeHRM demo E2E test suite",
+  "scripts": {
+    "test": "npx playwright test",
+    "test:headed": "npx playwright test --headed",
+    "test:smoke": "npx playwright test --project=smoke",
+    "test:allure": "npx playwright test && npx allure generate allure-results --clean && npx allure open",
+    "explore": "node e2e/explore.js",
+    "test:k6": "k6 run k6/load-test.js",
+    "test:k6:smoke": "k6 run --vus 2 --duration 30s k6/load-test.js",
+    "test:k6:local": "k6 run -e BASE_URL=http://localhost:8080 k6/load-test.js",
+    "test:python": "cd python_api_tests && python3 -m pytest -v",
+    "test:python:allure": "cd python_api_tests && python3 -m pytest --alluredir=../allure-results-python -v"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@autonoma-ai/sdk": "^0.2.5",
+    "@autonoma-ai/server-node": "^0.2.5",
+    "@playwright/test": "^1.60.0",
+    "playwright": "^1.60.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.3",
+    "allure-commandline": "^2.42.0",
+    "allure-playwright": "^3.9.0",
+    "typescript": "^6.0.3"
+  }
+}

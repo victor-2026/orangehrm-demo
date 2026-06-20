@@ -1,0 +1,35 @@
+# Dependencies
+node_modules/
+
+# Build/test outputs
+allure-results/
+allure-report/
+playwright-report/
+test-results/
+.pytest_cache/
+__pycache__/
+*.pyc
+
+# Auto-generated
+outputs/
+autonoma/
+exploration/
+experiments/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# Env
+.env
+.env.local
+
+# Temp
+tmp/
+debug-time.js
+dummy_search.txt
