@@ -57,11 +57,15 @@ Every AI-generated test must pass these 6 gates before shipping. Based on Anton 
 ```bash
 npm test              # headless
 npm run test:headed   # visible browser
-npm run explore       # re-generate site exploration
+npm run test:python   # Python tests (pytest + playwright)
 npm run test:smoke    # smoke tests only
 npm run test:k6       # k6 load test
-npm run test:k6:local # k6 load test (local Docker)
 ```
+
+## GitHub
+- Repo: https://github.com/victor-2026/orangehrm-demo (public)
+- Pages: https://victor-2026.github.io/orangehrm-demo/ (noindex)
+- Allure TestOps: https://victor2026.testops.cloud/project/1
 
 ## Communication — Full File Paths (MANDATORY)
 
