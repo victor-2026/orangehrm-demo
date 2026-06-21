@@ -30,4 +30,33 @@ export class BuzzPage extends BasePage {
     const text = await this.page.locator('.orangehrm-buzz-post-actions .orangehrm-buzz-stats').first().textContent();
     return text ? parseInt(text.match(/\d+/)?.[0] || '0') : 0;
   }
+
+  async isPostVisible(index: number) {
+    return this.page.locator('.orangehrm-buzz-post').nth(index).isVisible();
+  }
+
+  async getPostAuthor(index: number) {
+    return this.page.locator('.orangehrm-buzz-post').nth(index).locator('.orangehrm-buzz-post-emp-name').textContent();
+  }
+
+  async getPostDate(index: number) {
+    return this.page.locator('.orangehrm-buzz-post').nth(index).locator('.orangehrm-buzz-post-time').textContent();
+  }
+
+  async getActionButtons(index: number) {
+    const footer = this.page.locator('.orangehrm-buzz-post-footer').nth(index);
+    return footer.locator('.orangehrm-buzz-post-actions button').count();
+  }
+
+  async getPostStats(index: number) {
+    const footer = this.page.locator('.orangehrm-buzz-post-footer').nth(index);
+    return footer.locator('.orangehrm-buzz-stats').textContent();
+  }
+
+  async isCommentSectionVisible(index: number) {
+    const container = this.page.locator('.oxd-sheet.orangehrm-buzz');
+    const postBody = container.locator('.orangehrm-buzz-post-body').nth(index);
+    const hasCommentSection = postBody.locator('[class*=comment], [class*=Comment]');
+    return hasCommentSection.count() > 0;
+  }
 }

@@ -47,4 +47,44 @@ export class RecruitmentPage extends BasePage {
     const text = await this.page.textContent('.orangehrm-horizontal-padding');
     return text ? parseInt(text.match(/\d+/)?.[0] || '0') : 0;
   }
+
+  async gotoVacancies() {
+    await super.goto('/web/index.php/recruitment/viewJobVacancy');
+    await this.waitForLoad('.oxd-topbar-header-title', 10000).catch(() => {});
+  }
+
+  async gotoAddVacancy() {
+    await super.goto('/web/index.php/recruitment/addJobVacancy');
+    await this.waitForLoad('.oxd-form', 10000).catch(() => {});
+  }
+
+  async getTopbarTabs() {
+    const tabs = this.page.locator('.oxd-topbar-body-nav-tab');
+    const count = await tabs.count();
+    const names: string[] = [];
+    for (let i = 0; i < count; i++) {
+      const text = await tabs.nth(i).locator('.oxd-topbar-body-nav-tab-item').textContent();
+      if (text) names.push(text.trim());
+    }
+    return names;
+  }
+
+  async clickTopbarTab(name: string) {
+    await this.page.locator('.oxd-topbar-body-nav-tab-item').filter({ hasText: name }).click();
+  }
+
+  async getSearchFormFields() {
+    const fields = this.page.locator('.oxd-form .oxd-input-group');
+    const count = await fields.count();
+    const labels: string[] = [];
+    for (let i = 0; i < count; i++) {
+      const label = await fields.nth(i).locator('.oxd-label').textContent();
+      if (label && label.trim()) labels.push(label.trim());
+    }
+    return labels;
+  }
+
+  async isTableVisible() {
+    return this.page.isVisible('.oxd-table');
+  }
 }

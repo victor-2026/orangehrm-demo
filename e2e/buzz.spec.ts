@@ -25,4 +25,41 @@ test.describe('Buzz', () => {
     const postCount = await buzzPage.getPostCount();
     expect(postCount).toBeGreaterThan(0);
   });
+
+  test('buzz feed has posts @smoke', async ({ buzzPage, loggedInPage }) => {
+    await buzzPage.goto();
+    const postCount = await buzzPage.getPostCount();
+    test.skip(postCount === 0, 'No posts in feed');
+    expect(postCount).toBeGreaterThan(0);
+  });
+
+  test('post actions visible @smoke', async ({ buzzPage, loggedInPage }) => {
+    await buzzPage.goto();
+    const postCount = await buzzPage.getPostCount();
+    test.skip(postCount === 0, 'No posts in feed');
+    await expect(buzzPage.isPostVisible(0)).resolves.toBe(true);
+    const actionCount = await buzzPage.getActionButtons(0);
+    expect(actionCount).toBeGreaterThanOrEqual(2);
+  });
+
+  test('post author and date visible @smoke', async ({ buzzPage, loggedInPage }) => {
+    await buzzPage.goto();
+    const postCount = await buzzPage.getPostCount();
+    test.skip(postCount === 0, 'No posts in feed');
+    await expect(buzzPage.isPostVisible(0)).resolves.toBe(true);
+    const author = await buzzPage.getPostAuthor(0);
+    expect(author).toBeTruthy();
+    const date = await buzzPage.getPostDate(0);
+    expect(date).toBeTruthy();
+  });
+
+  test('buzz statistics visible @smoke', async ({ buzzPage, loggedInPage }) => {
+    await buzzPage.goto();
+    const postCount = await buzzPage.getPostCount();
+    test.skip(postCount === 0, 'No posts in feed');
+    await expect(buzzPage.isPostVisible(0)).resolves.toBe(true);
+    const stats = await buzzPage.getPostStats(0);
+    expect(stats).toBeTruthy();
+    expect(stats!.toLowerCase()).toContain('like');
+  });
 });

@@ -51,4 +51,17 @@ export class MyInfoPage extends BasePage {
   async waitForFirstNameInput(timeout = 15000) {
     await this.page.waitForSelector('input[name="firstName"]', { state: 'visible', timeout });
   }
+
+  async clickSubTab(name: string) {
+    await this.page.locator('.orangehrm-tabs-item').filter({ hasText: name }).click();
+    await this.waitForLoad('.orangehrm-main-title', 10000).catch(() => {});
+  }
+
+  async isPageHeadingVisible() {
+    return this.page.isVisible('.orangehrm-main-title');
+  }
+
+  async getSubTabCount() {
+    return this.page.locator('.orangehrm-tabs-item').count();
+  }
 }

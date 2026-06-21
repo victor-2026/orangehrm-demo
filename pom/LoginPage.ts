@@ -9,7 +9,6 @@ export class LoginPage extends BasePage {
 
   async goto() {
     await super.goto('/web/index.php/auth/login');
-    await this.waitForLoad('.orangehrm-login-branding');
   }
 
   async fillUsername(username: string) {

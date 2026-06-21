@@ -38,4 +38,32 @@ test.describe('Recruitment', () => {
       await recruitmentPage.searchCandidate(term);
     }
   });
+
+  test('vacancies page loads @smoke', async ({ recruitmentPage, loggedInPage }) => {
+    await recruitmentPage.gotoVacancies();
+    expect(await recruitmentPage.getCurrentUrl()).toContain('/recruitment/viewJobVacancy');
+    const heading = await recruitmentPage.getHeading();
+    expect(heading).toContain('Recruitment');
+  });
+
+  test('candidates search form visible @smoke', async ({ recruitmentPage, loggedInPage }) => {
+    await recruitmentPage.goto();
+    const fields = await recruitmentPage.getSearchFormFields();
+    expect(fields.length).toBeGreaterThanOrEqual(3);
+    expect(fields).toContain('Job Title');
+    expect(fields).toContain('Vacancy');
+  });
+
+  test('vacancies table visible @smoke', async ({ recruitmentPage, loggedInPage }) => {
+    await recruitmentPage.gotoVacancies();
+    const tableVisible = await recruitmentPage.isTableVisible();
+    expect(tableVisible).toBe(true);
+  });
+
+  test('recruitment topbar tabs visible @smoke', async ({ recruitmentPage, loggedInPage }) => {
+    await recruitmentPage.goto();
+    const tabs = await recruitmentPage.getTopbarTabs();
+    expect(tabs).toContain('Candidates');
+    expect(tabs).toContain('Vacancies');
+  });
 });

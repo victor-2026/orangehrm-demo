@@ -35,4 +35,41 @@ test.describe('My Info', () => {
     await myInfoPage.editFirstName(originalFirst);
     await myInfoPage.clickSave();
   });
+
+  test('contact details page loads @smoke', async ({ myInfoPage, loggedInPage }) => {
+    await myInfoPage.goto();
+    await myInfoPage.clickSubTab('Contact Details');
+    expect(await myInfoPage.getCurrentUrl()).toContain('contactDetails');
+    expect(await myInfoPage.isPageHeadingVisible()).toBe(true);
+  });
+
+  test('emergency contacts page loads @smoke', async ({ myInfoPage, loggedInPage }) => {
+    await myInfoPage.goto();
+    await myInfoPage.clickSubTab('Emergency Contacts');
+    expect(await myInfoPage.getCurrentUrl()).toContain('viewEmergencyContacts');
+  });
+
+  test('dependents page loads @smoke', async ({ myInfoPage, loggedInPage }) => {
+    await myInfoPage.goto();
+    await myInfoPage.clickSubTab('Dependents');
+    expect(await myInfoPage.getCurrentUrl()).toContain('viewDependents');
+  });
+
+  test('job page loads @smoke', async ({ myInfoPage, loggedInPage }) => {
+    await myInfoPage.goto();
+    await myInfoPage.clickSubTab('Job');
+    expect(await myInfoPage.getCurrentUrl()).toContain('viewJobDetails');
+  });
+
+  test('salary page loads @smoke', async ({ myInfoPage, loggedInPage }) => {
+    await myInfoPage.goto();
+    await myInfoPage.clickSubTab('Salary');
+    expect(await myInfoPage.getCurrentUrl()).toContain('viewSalaryList');
+  });
+
+  test('qualifications page loads @smoke', async ({ myInfoPage, loggedInPage }) => {
+    await myInfoPage.goto();
+    await myInfoPage.clickSubTab('Qualifications');
+    expect(await myInfoPage.getCurrentUrl()).toContain('viewQualifications');
+  });
 });
