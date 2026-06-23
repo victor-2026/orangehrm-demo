@@ -14,22 +14,18 @@ export class PerformancePage extends BasePage {
   }
 
   async goto() {
-    await this.login();
     await super.goto('/web/index.php/performance/viewReviewModule');
   }
 
   async gotoReviewList() {
-    await this.login();
     await super.goto('/web/index.php/performance/searchEvaluatePerformanceReview');
   }
 
   async gotoMyTrackers() {
-    await this.login();
     await super.goto('/web/index.php/performance/viewMyPerformanceTracker');
   }
 
   async gotoKPIs() {
-    await this.login();
     await super.goto('/web/index.php/performance/defineKpi');
   }
 

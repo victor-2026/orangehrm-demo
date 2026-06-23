@@ -1,7 +1,7 @@
 import { test, expect } from '../helpers/fixtures';
 
 test.describe('PIM Employee List — Fault Injection (with skill)', () => {
-  test('injects null into emp_firstname via page.route() and verifies mutation is caught', async ({ pimPage, page, loggedInPage }) => {
+  test('injects null into emp_firstname via page.route() and verifies mutation is caught @local', async ({ pimPage, page, loggedInPage }) => {
     // Intercept the Employee List API response (skill pattern: page.route with fetch/fulfill)
     await page.route('**/api/v2/pim/employees**', async (route) => {
       const response = await route.fetch();
@@ -24,10 +24,10 @@ test.describe('PIM Employee List — Fault Injection (with skill)', () => {
       });
     });
 
-    await pimPage.goto();
+    await page.goto('/web/index.php/pim/viewEmployeeList');
     
-    // Wait for table to load with mutated data
-    await page.waitForTimeout(2000);
+    // Wait for page to load (table may not render due to mutation)
+    await page.waitForTimeout(3000);
     
     const tableBody = page.locator('.oxd-table-body');
     
@@ -43,7 +43,7 @@ test.describe('PIM Employee List — Fault Injection (with skill)', () => {
     expect(firstNameText).not.toBe('null');
   });
 
-  test('HOM: null emp_firstname + negative emp_number via page.route()', async ({ pimPage, page, loggedInPage }) => {
+  test('HOM: null emp_firstname + negative emp_number via page.route() @local', async ({ pimPage, page, loggedInPage }) => {
     // Skill HOM pattern: combine multiple mutations
     await page.route('**/api/v2/pim/employees**', async (route) => {
       const response = await route.fetch();
@@ -67,8 +67,8 @@ test.describe('PIM Employee List — Fault Injection (with skill)', () => {
       });
     });
 
-    await pimPage.goto();
-    await page.waitForTimeout(2000);
+    await page.goto('/web/index.php/pim/viewEmployeeList');
+    await page.waitForTimeout(3000);
     
     const tableBody = page.locator('.oxd-table-body');
     const firstNameCell = tableBody.locator('.oxd-table-cell').nth(2);

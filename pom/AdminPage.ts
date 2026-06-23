@@ -8,7 +8,7 @@ export class AdminPage extends BasePage {
 
   async goto() {
     await super.goto('/web/index.php/admin/viewSystemUsers');
-    await this.waitForLoad('.oxd-table-body .oxd-table-row');
+    await this.waitForLoad('.oxd-table-body .oxd-table-row', 30000);
   }
 
   async clickAdd() {
@@ -42,9 +42,10 @@ export class AdminPage extends BasePage {
   }
 
   async clickSave() {
+    const resp = this.page.waitForResponse(r => r.url().includes('/api/v2/admin/users') && ['POST', 'PUT'].includes(r.request().method()), { timeout: 10000 }).catch(() => null);
     await this.page.click('button[type="submit"]');
-    await this.page.waitForURL('**/viewSystemUsers', { timeout: 15000 });
-    await this.waitForLoad('.oxd-table-body .oxd-table-row', 15000);
+    await resp;
+    await this.page.waitForTimeout(1000);
   }
 
   async searchUser(username: string) {
@@ -64,7 +65,7 @@ export class AdminPage extends BasePage {
   }
 
   async searchByStatus(status: string) {
-    const statusSelect = this.page.locator('.oxd-form .oxd-select-text-input').nth(2);
+    const statusSelect = this.page.locator('.oxd-form .oxd-select-text-input').nth(1);
     await statusSelect.click();
     await this.page.click(`.oxd-select-option:has-text("${status}")`);
     await this.page.click('button:has-text("Search")');
@@ -75,8 +76,9 @@ export class AdminPage extends BasePage {
     const userRoleSelect = this.page.locator('.oxd-form .oxd-select-text-input').first();
     await userRoleSelect.click();
     await this.page.click(`.oxd-select-option:has-text("${userRole}")`);
+    await this.page.waitForTimeout(500);
 
-    const statusSelect = this.page.locator('.oxd-form .oxd-select-text-input').nth(2);
+    const statusSelect = this.page.locator('.oxd-form .oxd-select-text-input').nth(1);
     await statusSelect.click();
     await this.page.click(`.oxd-select-option:has-text("${status}")`);
 
@@ -94,23 +96,24 @@ export class AdminPage extends BasePage {
     const searchInput = this.page.locator('.oxd-form .oxd-input-group input.oxd-input').first();
     await searchInput.fill('ZZZNonoExistsUser');
     await this.page.click('button:has-text("Search")');
-    await this.waitForLoad('.oxd-table-body .oxd-table-row');
+    await this.page.waitForTimeout(2000);
   }
 
   async clickUserDetails(username: string) {
-    const row = this.page.locator(`.oxd-table-body .oxd-table-row:has-text("${username}")`);
-    await row.click();
+    const row = this.page.locator(`.oxd-table-body .oxd-table-row:has-text("${username}")`).first();
+    await row.locator('button').nth(1).click();
     await this.waitForLoad('.oxd-form');
   }
 
   async editUserStatus(username: string, newStatus: string) {
     await this.clickUserDetails(username);
-    const statusSelect = this.page.locator('.oxd-form .oxd-select-text-input');
+    const statusSelect = this.page.locator('.oxd-form .oxd-select-text-input').nth(1);
     await statusSelect.click();
     await this.page.click(`.oxd-select-option:has-text("${newStatus}")`);
+    const resp = this.page.waitForResponse(r => r.url().includes('/api/v2/admin/users') && r.request().method() === 'PUT', { timeout: 10000 }).catch(() => null);
     await this.page.click('button[type="submit"]');
-    await this.page.waitForURL('**/viewSystemUsers', { timeout: 15000 });
-    await this.waitForLoad('.oxd-table-body .oxd-table-row');
+    await resp;
+    await this.page.waitForTimeout(1000);
   }
 
   async getTopbarSubTabs(): Promise<string[]> {
@@ -164,12 +167,11 @@ export class AdminPage extends BasePage {
   }
 
   async addPayGradeCurrency(gradeName: string, currency: string, min: string, max: string) {
-    await this.page.click(`.oxd-table-row:has-text("${gradeName}")`);
-    await this.page.click('button:has-text("Currency")');
+    await this.page.locator('button.oxd-button--secondary:has-text("Add")').click();
     await this.fillByLabel('Currency', currency);
-    await this.fillByLabel('Min Salary', min);
-    await this.fillByLabel('Max Salary', max);
-    await this.page.click('button[type="submit"]');
+    await this.fillByLabel('Minimum Salary', min);
+    await this.fillByLabel('Maximum Salary', max);
+    await this.page.locator('button[type="submit"]').last().click();
     await this.waitForLoad('.oxd-table');
   }
 
@@ -181,17 +183,19 @@ export class AdminPage extends BasePage {
 
   async addSkill(name: string, description?: string) {
     await this.page.click('button:has-text("Add")');
-    await this.fillByLabel('Skill Name', name);
+    await this.fillByLabel('Name', name);
     if (description) {
-      await this.fillByLabel('Skill Description', description);
+      await this.fillByLabel('Description', description);
     }
     await this.page.click('button[type="submit"]');
     await this.waitForLoad('.oxd-table');
   }
 
   async searchSkill(name: string) {
-    await this.fillByLabel('Search', name);
-    await this.page.click('button:has-text("Search")');
+    const input = this.page.locator('.oxd-input').first();
+    await input.waitFor({ state: 'visible', timeout: 15000 });
+    await input.fill(name);
+    await this.page.waitForTimeout(2000);
     await this.waitForLoad('.oxd-table');
   }
 
@@ -203,7 +207,7 @@ export class AdminPage extends BasePage {
 
   async addEducation(level: string) {
     await this.page.click('button:has-text("Add")');
-    await this.fillByLabel('Education Level', level);
+    await this.fillByLabel('Level', level);
     await this.page.click('button[type="submit"]');
     await this.waitForLoad('.oxd-table');
   }
@@ -216,7 +220,7 @@ export class AdminPage extends BasePage {
 
   async addLicense(name: string) {
     await this.page.click('button:has-text("Add")');
-    await this.fillByLabel('License Name', name);
+    await this.fillByLabel('Name', name);
     await this.page.click('button[type="submit"]');
     await this.waitForLoad('.oxd-table');
   }
@@ -229,7 +233,7 @@ export class AdminPage extends BasePage {
 
   async addLanguage(name: string) {
     await this.page.click('button:has-text("Add")');
-    await this.fillByLabel('Language Name', name);
+    await this.fillByLabel('Name', name);
     await this.page.click('button[type="submit"]');
     await this.waitForLoad('.oxd-table');
   }
@@ -237,12 +241,12 @@ export class AdminPage extends BasePage {
   // Nationalities methods
   async navigateToNationalities() {
     await this.clickTopbarTab('Nationalities');
-    await this.waitForLoad('.oxd-table');
+    await this.waitForLoad('.oxd-table-body', 15000);
   }
 
   async addNationality(name: string) {
     await this.page.click('button:has-text("Add")');
-    await this.fillByLabel('Nationality', name);
+    await this.fillByLabel('Name', name);
     await this.page.click('button[type="submit"]');
     await this.waitForLoad('.oxd-table');
   }
@@ -255,11 +259,11 @@ export class AdminPage extends BasePage {
   // Corporate Branding methods
   async navigateToCorporateBranding() {
     await this.clickTopbarTab('Corporate Branding');
-    await this.waitForLoad('.oxd-color-block');
+    await this.waitForLoad('.oxd-form', 15000);
   }
 
   async changePrimaryColor(hexColor: string) {
-    const colorInput = this.page.locator('.oxd-input[type="color"]').first();
+    const colorInput = this.page.locator('input.oxd-input[type="text"]').first();
     await colorInput.fill(hexColor);
     await this.page.click('button:has-text("Preview")');
   }
@@ -275,7 +279,7 @@ export class AdminPage extends BasePage {
     await this.fillByLabel('SMTP Host', config.smtpHost);
     await this.fillByLabel('SMTP Port', config.smtpPort);
     if (config.useSmtpAuth) {
-      await this.page.check('input[name="smtp_auth"]');
+      await this.page.locator('input[value="login"]').click({ force: true });
       await this.fillByLabel('SMTP User', config.smtpUser);
       await this.fillByLabel('SMTP Password', config.smtpPassword);
     }
@@ -304,7 +308,7 @@ export class AdminPage extends BasePage {
   }
 
   async changeLanguage(language: string) {
-    const languageSelect = this.page.locator('.oxd-select-text-input');
+    const languageSelect = this.page.locator('.oxd-select-text-input').first();
     await languageSelect.click();
     await this.page.click(`.oxd-select-option:has-text("${language}")`);
   }
@@ -322,9 +326,12 @@ export class AdminPage extends BasePage {
   }
 
   async toggleModule(moduleName: string, enable: boolean) {
-    const switchInput = this.page.locator('.oxd-switch-input').filter({ hasText: moduleName });
-    if (enable !== (await switchInput.isChecked())) {
-      await switchInput.click();
+    const row = this.page.locator('.orangehrm-module-field-row').filter({ hasText: moduleName });
+    const checkbox = row.locator('input[type="checkbox"]');
+    if (await checkbox.isEnabled()) {
+      if (enable !== (await checkbox.isChecked())) {
+        await row.locator('.oxd-switch-input').click();
+      }
     }
   }
 
@@ -447,6 +454,6 @@ export class AdminPage extends BasePage {
   }
 
   async isUserFormVisible() {
-    return this.page.locator('text=System Users').isVisible();
+    return this.page.url().includes('/admin/saveSystemUser');
   }
 }

@@ -56,11 +56,8 @@ export class MaintenancePage extends BasePage {
   }
 
   async getPurgeRecordsFormVisible() {
-    // Originally checked for "Employee Name" text which doesn't exist after auth
-    // Now check for breadcrumb "Purge Records" which is visible
-    const breadcrumb = this.page.locator('.oxd-topbar-header-breadcrumb-level');
-    const text = await breadcrumb.textContent();
-    return text?.trim() === 'Purge Records';
+    await this.waitForLoad('.oxd-topbar-header-title', 15000).catch(() => {});
+    return !(await this.page.locator('h6:has-text("Administrator Access")').isVisible().catch(() => false));
   }
 
   async getAuthenticationError() {

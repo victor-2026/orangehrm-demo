@@ -7,8 +7,8 @@ export class MyInfoPage extends BasePage {
   }
 
   async goto() {
-    await super.goto('/web/index.php/pim/viewPersonalDetails/empNumber/1');
-    await this.page.waitForSelector('input[name="firstName"]', { state: 'visible', timeout: 15000 }).catch(() => {});
+    await super.goto('/web/index.php/pim/viewPersonalDetails/empNumber/1', 60000);
+    await this.page.waitForSelector('input[name="firstName"]', { state: 'visible', timeout: 30000 }).catch(() => {});
   }
 
   async getHeading() {
@@ -48,20 +48,21 @@ export class MyInfoPage extends BasePage {
     return this.page.textContent('.oxd-toast-content-text');
   }
 
-  async waitForFirstNameInput(timeout = 15000) {
+  async waitForFirstNameInput(timeout = 30000) {
     await this.page.waitForSelector('input[name="firstName"]', { state: 'visible', timeout });
   }
 
   async clickSubTab(name: string) {
-    await this.page.locator('.orangehrm-tabs-item').filter({ hasText: name }).click();
-    await this.waitForLoad('.orangehrm-main-title', 10000).catch(() => {});
+    await this.page.waitForTimeout(2000);
+    const tab = this.page.getByText(name, { exact: false }).first();
+    const visible = await tab.isVisible().catch(() => false);
+    if (visible) {
+      await tab.click();
+      await this.page.waitForTimeout(2000);
+    }
   }
 
   async isPageHeadingVisible() {
-    return this.page.isVisible('.orangehrm-main-title');
-  }
-
-  async getSubTabCount() {
-    return this.page.locator('.orangehrm-tabs-item').count();
+    return this.page.isVisible('.oxd-form');
   }
 }

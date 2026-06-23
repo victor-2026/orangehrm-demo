@@ -14,25 +14,21 @@ export class TimePage extends BasePage {
   }
 
   async goto() {
-    await this.login();
     await super.goto('/web/index.php/time/viewTimeModule');
     await this.waitForLoad('.oxd-topbar-header-title', 10000).catch(() => {});
   }
 
   async gotoMyTimesheet() {
-    await this.login();
     await super.goto('/web/index.php/time/viewMyTimesheet');
     await this.waitForLoad('.oxd-topbar-header-title', 10000).catch(() => {});
   }
 
   async gotoAttendance() {
-    await this.login();
     await super.goto('/web/index.php/time/displayAttendanceStatistics');
     await this.waitForLoad('.oxd-topbar-header-title', 10000).catch(() => {});
   }
 
   async gotoEmployeeTimesheets() {
-    await this.login();
     await super.goto('/web/index.php/time/viewEmployeeTimesheet');
     await this.waitForLoad('.oxd-topbar-header-title', 10000).catch(() => {});
   }

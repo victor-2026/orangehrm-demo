@@ -19,6 +19,9 @@
 ```
 OrangeHRM/
 ├── e2e/              — test specs (auth, admin, pim, leave, etc.)
+│   ├── seed.spec.ts  — auth seed for Playwright Agents (PWA-004)
+│   └── *.spec.ts     — module tests
+├── e2e/.auth/        — storage state from seed (gitignored)
 ├── pom/              — Page Object Models
 ├── k6/               — load test scripts
 ├── helpers/          — fixtures, credentials
@@ -26,6 +29,20 @@ OrangeHRM/
 ├── playwright.config.ts
 ├── tsconfig.json
 └── package.json
+```
+
+## Seed Test (Playwright Agents)
+
+`e2e/seed.spec.ts` logs in as admin and saves storage state to `e2e/.auth/admin.json`. Used by Planner/Generator/Healer agents for authenticated navigation.
+
+**Reference in test plans:**
+```markdown
+**Seed:** `e2e/seed.spec.ts`
+```
+
+**Run standalone:**
+```bash
+npx playwright test e2e/seed.spec.ts --project=setup
 ```
 
 ## Sources of Truth (resolution order)

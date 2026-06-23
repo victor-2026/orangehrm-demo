@@ -1,12 +1,12 @@
 import { test, expect } from '../helpers/fixtures';
 
 test.describe('Buzz', () => {
-  test('buzz page loads @smoke', async ({ buzzPage, loggedInPage }) => {
+  test('buzz page loads @local', async ({ buzzPage, loggedInPage }) => {
     await buzzPage.goto();
     expect(await buzzPage.getCurrentUrl()).toContain('/buzz/viewBuzz');
   });
 
-  test('can like a post @smoke', async ({ buzzPage, page, loggedInPage }) => {
+  test('can like a post @local', async ({ buzzPage, page, loggedInPage }) => {
     await buzzPage.goto();
     const postCount = await buzzPage.getPostCount();
     test.skip(postCount === 0, 'No posts to like on shared demo');
@@ -26,14 +26,14 @@ test.describe('Buzz', () => {
     expect(postCount).toBeGreaterThan(0);
   });
 
-  test('buzz feed has posts @smoke', async ({ buzzPage, loggedInPage }) => {
+  test('buzz feed has posts @local', async ({ buzzPage, loggedInPage }) => {
     await buzzPage.goto();
     const postCount = await buzzPage.getPostCount();
     test.skip(postCount === 0, 'No posts in feed');
     expect(postCount).toBeGreaterThan(0);
   });
 
-  test('post actions visible @smoke', async ({ buzzPage, loggedInPage }) => {
+  test('post actions visible @local', async ({ buzzPage, loggedInPage }) => {
     await buzzPage.goto();
     const postCount = await buzzPage.getPostCount();
     test.skip(postCount === 0, 'No posts in feed');
@@ -42,7 +42,7 @@ test.describe('Buzz', () => {
     expect(actionCount).toBeGreaterThanOrEqual(2);
   });
 
-  test('post author and date visible @smoke', async ({ buzzPage, loggedInPage }) => {
+  test('post author and date visible @local', async ({ buzzPage, loggedInPage }) => {
     await buzzPage.goto();
     const postCount = await buzzPage.getPostCount();
     test.skip(postCount === 0, 'No posts in feed');
@@ -53,7 +53,7 @@ test.describe('Buzz', () => {
     expect(date).toBeTruthy();
   });
 
-  test('buzz statistics visible @smoke', async ({ buzzPage, loggedInPage }) => {
+  test('buzz statistics visible @local', async ({ buzzPage, loggedInPage }) => {
     await buzzPage.goto();
     const postCount = await buzzPage.getPostCount();
     test.skip(postCount === 0, 'No posts in feed');

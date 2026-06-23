@@ -1,12 +1,12 @@
 import { test, expect } from '../helpers/fixtures';
 
 test.describe('Leave Management', () => {
-  test('view leave list page loads @smoke', async ({ leavePage }) => {
+  test('view leave list page loads @local', async ({ leavePage }) => {
     await leavePage.goto();
     expect(await leavePage.getCurrentUrl()).toContain('/leave/viewLeaveList');
   });
 
-  test('leave balance displayed @smoke', async ({ leavePage }) => {
+  test('leave balance displayed @local', async ({ leavePage }) => {
     await leavePage.goto();
     expect(await leavePage.getCurrentUrl()).toContain('/leave/viewLeaveList');
   });
@@ -16,7 +16,7 @@ test.describe('Leave Management', () => {
     expect(await leavePage.getCurrentUrl()).toContain('/leave/applyLeave');
   });
 
-  test('my leave page loads @smoke', async ({ leavePage }) => {
+  test('my leave page loads @local', async ({ leavePage }) => {
     await leavePage.gotoMyLeave();
     expect(await leavePage.getCurrentUrl()).toContain('/leave/viewMyLeaveList');
   });

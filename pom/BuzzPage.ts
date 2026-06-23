@@ -12,7 +12,9 @@ export class BuzzPage extends BasePage {
   }
 
   async createPost(text: string) {
-    await this.page.fill('.oxd-buzz-post-input', text);
+    const input = this.page.locator('.oxd-buzz-post-input, textarea[placeholder*="What"], [contenteditable="true"]').first();
+    await input.waitFor({ state: 'visible', timeout: 15000 });
+    await input.fill(text);
     await this.page.click('button:has-text("Post")');
   }
 

@@ -26,24 +26,37 @@ export default defineConfig({
   },
   projects: [
     {
+      name: 'setup',
+      testMatch: 'seed.spec.ts',
+    },
+    {
       name: 'smoke',
       grep: /@smoke/,
-      use: { browserName: 'chromium' },
+      use: { browserName: 'chromium', storageState: 'e2e/.auth/admin.json' },
+      dependencies: ['setup'],
     },
     {
       name: 'chromium',
       grep: LOCAL ? undefined : /^(?!.*@local)/,
+      use: { browserName: 'chromium', storageState: 'e2e/.auth/admin.json' },
+      dependencies: ['setup'],
+    },
+    {
+      name: 'auth',
+      testMatch: 'auth.spec.ts',
       use: { browserName: 'chromium' },
     },
     ...(LOCAL ? [{
       name: 'local',
       grep: /@local/,
-      use: { browserName: 'chromium' as const },
+      use: { browserName: 'chromium' as const, storageState: 'e2e/.auth/admin.json' },
+      dependencies: ['setup'],
     }] : []),
     {
       name: 'visual',
       testMatch: 'visual/**/*.spec.ts',
-      use: { browserName: 'chromium' },
+      use: { browserName: 'chromium', storageState: 'e2e/.auth/admin.json' },
+      dependencies: ['setup'],
     },
   ],
 });

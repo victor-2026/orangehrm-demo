@@ -1,12 +1,12 @@
 import { test, expect } from '../helpers/fixtures';
 
 test.describe('Claim', () => {
-  test('claim page loads @smoke', async ({ claimPage, loggedInPage }) => {
+  test('claim page loads @local', async ({ claimPage, loggedInPage }) => {
     await claimPage.goto();
     const heading = await claimPage.getHeading();
     expect(heading).toContain('Claim');
   });
-test('all 5 navigation tabs visible @smoke', async ({ claimPage, page, loggedInPage }) => {
+test('all 5 navigation tabs visible @local', async ({ claimPage, page, loggedInPage }) => {
   await claimPage.goto();
   const tabLocator = page.locator('.oxd-topbar-body-nav-tab-item');
   await expect(tabLocator).toHaveCount(5);
@@ -19,22 +19,22 @@ test('all 5 navigation tabs visible @smoke', async ({ claimPage, page, loggedInP
     'Assign Claim',
   ]);
 });
-test('submit claim page loads @smoke', async ({ page, claimPage, loggedInPage }) => {
+test('submit claim page loads @local', async ({ page, claimPage, loggedInPage }) => {
   await claimPage.goto();
   await claimPage.clickAdd();
   await expect(page.locator('.orangehrm-main-title')).toContainText('Create Claim Request');
 });
-test('my claims page loads @smoke', async ({ page, loggedInPage }) => {
+test('my claims page loads @local', async ({ page, loggedInPage }) => {
   await page.goto('/web/index.php/claim/viewClaim');
   await page.waitForTimeout(1000);
   await expect(page.locator('h5')).toContainText('My Claims');
 });
-test('navigate to submit claim tab @smoke', async ({ page, claimPage, loggedInPage }) => {
+test('navigate to submit claim tab @local', async ({ page, claimPage, loggedInPage }) => {
   await claimPage.goto();
   await page.click('a:has-text("Submit Claim")');
   await expect(page.getByRole('heading', { name: 'Create Claim Request' })).toBeVisible();
 });
-  test('claim table visible @smoke', async ({ claimPage, loggedInPage }) => {
+  test('claim table visible @local', async ({ claimPage, loggedInPage }) => {
     await claimPage.goto();
     const visible = await claimPage.isClaimListVisible();
     expect(visible).toBe(true);

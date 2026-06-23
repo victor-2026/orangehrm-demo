@@ -29,6 +29,9 @@ Thumbs.db
 .env
 .env.local
 
+# Auth state (seed)
+.auth/
+
 # Temp
 tmp/
 debug-time.js

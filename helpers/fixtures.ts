@@ -73,9 +73,11 @@ export const test = base.extend<Fixtures>({
   loggedInPage: async ({ page }, use) => {
     const login = new LoginPage(page);
     await login.goto();
-    await base.step('Login as admin', async () => {
-      await login.loginAsAdmin();
-    });
+    if (await page.locator('input[name="username"]').isVisible().catch(() => false)) {
+      await base.step('Login as admin', async () => {
+        await login.loginAsAdmin();
+      });
+    }
     await use(login);
   },
 });

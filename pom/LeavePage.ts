@@ -14,7 +14,6 @@ export class LeavePage extends BasePage {
   }
 
   async goto(path?: string) {
-    await this.login();
     if (path) {
       await super.goto(path);
     } else {
@@ -23,12 +22,10 @@ export class LeavePage extends BasePage {
   }
 
   async gotoMyLeave() {
-    await this.login();
     await super.goto('/web/index.php/leave/viewMyLeaveList');
   }
 
   async gotoEntitlements() {
-    await this.login();
     await super.goto('/web/index.php/leave/viewLeaveEntitlements');
   }
 

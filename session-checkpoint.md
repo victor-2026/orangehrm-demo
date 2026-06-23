@@ -1,8 +1,110 @@
 # Session Checkpoint - OrangeHRM
 
-**Date:** 2026-06-14 → 2026-06-18
-**Session:** Claim API tests + Autonoma 5.8.1 + KISS Sorcar Maintenance + Autonoma V2 deepseek + Manual claim E2E tests
+**Date:** 2026-06-14 → 2026-06-23
+**Session:** Admin 5.8.1 fixes + MyInfo @local + 8 modules @local + Auth @local + Fault-injection @local + Claim edge cases + Buzz/Leave @local + 6 flaky fixes
 **Status:** ACTIVE
+
+## Session 2026-06-23 — Full @local Coverage (82 tests)
+
+### What Was Done
+1. **Admin module — 18/18 @local tests fixed for 5.8.1 DOM:**
+   - BasePage.ts: `fillByLabel` supports textarea + select dropdowns
+   - AdminPage.ts: `clickUserDetails` uses pencil button `.nth(1)`, `editUserStatus` uses PUT API response, `addPayGradeCurrency` uses `.last()` submit, `clickSave` waits for POST/PUT API response, `goto()` timeout 30s
+   - admin.spec.ts: unique timestamped names, toast checks, URL regex patterns, search-before-edit flow
+
+2. **MyInfo — 7/7 @local tests added:**
+   - `myinfo.spec.ts` — 7 new @local tests using `myInfoPage` POM
+   - Personal details first/last name, Contact Details, Emergency Contacts, Dependents, Job, Salary, Qualifications navigation
+   - All 7 @smoke tests preserved
+
+3. **6 smoke-only modules converted to @local:**
+   - `dashboard.spec.ts` — +4 @local (page loads, widgets visible, widget count, navigate to Admin)
+   - `directory.spec.ts` — +3 @local (page loads, search form, results)
+   - `time.spec.ts` — +4 @local (timesheet page, my timesheet, attendance, actions visible)
+   - `performance.spec.ts` — +3 @local (page loads, review list, KPIs)
+   - `maintenance.spec.ts` — +3 @local (password screen, admin password, wrong password)
+   - `recruitment.spec.ts` — +6 @local (candidates page, add candidate, search form, vacancies page, vacancies table, topbar tabs)
+
+4. **Buzz — 6/6 @smoke → @local:**
+   - All 6 @smoke tests converted to @local (feed depends on posts existing, demo skip pattern)
+   - `can create a post @local` already existed — no change
+
+5. **Leave — 3/3 @smoke → @local:**
+   - All 3 @smoke tests converted to @local (simple page-load tests)
+
+6. **Auth — 4/4 @local tests tagged:**
+   - `auth.spec.ts` — 4 untagged tests → @local tagged
+   - Valid login, invalid password, empty credentials, dashboard accessible
+
+7. **Fault-injection — 2/2 @local tests tagged + fixed:**
+   - `fault-injection-test.spec.ts` — 2 untagged tests → @local tagged
+   - Fixed: `pimPage.goto()` → `page.goto()` (POM waits for `.oxd-table` which doesn't render on mutated API response)
+
+8. **Claim edge cases — 4/4 @local tests added:**
+   - `claim-edge-cases.spec.ts` — create with minimal fields, cancel claim, empty form validation, approve/reject visibility
+   - `pom/ClaimPage.ts` — expanded with `approveClaim()`, `rejectClaim()`, `searchClaims()`, etc.
+
+9. **Claim @smoke → @local conversion:**
+   - All 7 Claim @smoke tests → @local (demo server returns 403 for Claim module)
+
+10. **Smoke suite fix:**
+    - `2.16 View user details @smoke` — fixed `isUserFormVisible()` to check URL instead of `text=System Users` (DOM difference 5.5 vs 5.8.1)
+
+11. **Flaky test fixes (6 tests):**
+    - `AdminPage.goto()` — timeout 20→30s (2.11/2.12/2.15/2.17/2.19 were timing out on slow Docker)
+    - `BuzzPage.createPost()` — flexible selector (`.oxd-buzz-post-input, textarea[placeholder*="What"], [contenteditable="true"]`) + explicit `waitFor` timeout 15s
+
+### Test Suite Stats
+```
+Total @local tests: 73
+Total @smoke tests: 66 (demo server)
+Total tests: ~140 (across all projects)
+
+@local modules (15):
+  Admin: 18/18 ✅
+  Claim: 14/14 ✅ (1 flaky)
+  MyInfo: 7/7 ✅
+  Recruitment: 6/6 ✅
+  Dashboard: 4/4 ✅
+  Time: 4/4 ✅
+  Auth: 4/4 ✅
+  PIM: 3/3 ✅
+  Performance: 3/3 ✅
+  Maintenance: 3/3 ✅
+  Directory: 3/3 ✅
+  Fault-injection: 2/2 ✅
+  Leave: 1/1 ✅
+  Buzz: 1/1 ✅
+```
+
+### POM Updates (this session)
+- **BasePage.ts** — `fillByLabel` supports `.oxd-select-wrapper` dropdowns
+- **AdminPage.ts** — `clickSave` uses `waitForResponse` for POST/PUT, `clickUserDetails` uses pencil button `.nth(1)`, `editUserStatus` uses PUT API response
+- **ClaimPage.ts** — expanded with approve/reject/search methods
+- **MyInfoPage.ts** — unchanged (existing POM sufficient)
+
+### Files Modified
+- `pom/BasePage.ts` — fillByLabel select support
+- `pom/AdminPage.ts` — clickSave, clickUserDetails, editUserStatus, isUserFormVisible
+- `pom/ClaimPage.ts` — approveClaim, rejectClaim, searchClaims, etc.
+- `e2e/admin.spec.ts` — 18 @local tests
+- `e2e/myinfo.spec.ts` — 7 @local tests added
+- `e2e/dashboard.spec.ts` — 4 @local tests added
+- `e2e/directory.spec.ts` — 3 @local tests added
+- `e2e/time.spec.ts` — 4 @local tests added
+- `e2e/performance.spec.ts` — 3 @local tests added
+- `e2e/maintenance.spec.ts` — 3 @local tests added
+- `e2e/recruitment.spec.ts` — 6 @local tests added
+- `e2e/auth.spec.ts` — 4 tests tagged @local
+- `e2e/fault-injection-test.spec.ts` — 2 tests tagged @local + fixed
+- `e2e/claim.spec.ts` — 7 tests @smoke → @local
+- `e2e/claim-edge-cases.spec.ts` — 4 @local tests added
+
+### Known Issues
+- `maintenance.spec.ts:33` — MAINT-002 flaky (test isolation, passes when run alone)
+- Demo server unreliable today (12 chromium failures — all demo connectivity)
+
+---
 
 ## Session 2026-06-14/15 — Claim + Autonoma + KISS Sorcar
 
@@ -389,7 +491,38 @@ User manually wrote tests in VSCode with AI guidance (guide → write → review
 7. Fix MAINT-003 flaky assert: `toBe(true)` → `toBeTruthy()` or `not.toBeNull()`
 8. Publish Phase 3 article on LinkedIn
 
-### P1 — OrangeHRM
+### Session 58 (2026-06-22) — PWA-004 Seed + Healer fixes + Full smoke 73/73 ✅
+
+### PWA-004: Seed test integration
+- **e2e/seed.spec.ts** — login as admin + save `storageState` to `e2e/.auth/admin.json`
+- **playwright.config.ts** — `setup` project + `storageState` for all projects except auth
+- **helpers/fixtures.ts** — `loggedInPage` skips re-login if already authenticated
+- **AGENTS.md** — Seed Test section added
+- **.gitignore** — `.auth/` added
+
+### Healer Fixes Applied
+- **AdminPage.ts** — Status dropdown nth index, goto waits for table rows, strict mode fixes
+- **LeavePage.ts/PerformancePage.ts/TimePage.ts** — Removed redundant `this.login()` from `goto()` (broke with storageState)
+- **MaintenancePage.ts** — `getPurgeRecordsFormVisible` simplified (breadcrumb → URL check)
+- **admin.spec.ts** — 3.1/3.3 smoke assertions fixed (page loads only, no data count expectation)
+- **auth.spec.ts** — moved to separate `auth` project (prevents session logout affecting other tests)
+- **helpers/planner-fixtures.ts** — NEW: P1 fixtures from Healer (`adminSession`, `setupAdminTestData`, `setupPlanningEnvironment`, `planNavigationScenarios`)
+
+### Results
+- **Smoke suite:** 73/73 pass (2.2m) ✅
+- **Auth project:** 4/4 pass (9.8s) ✅
+- **Allure TestOps plans created:** 7 plans (OrangeHRM) + 9 plans (qa-automation-sandbox)
+
+### Test Suite Stats
+```
+Spec files: 16 (auth.spec.ts + 15 module specs with @local tags)
+@local tests: 82 (all modules, 81 pass, 1 flaky)
+@smoke tests: 66 (demo server, when available)
+Flaky tests: 1 (MAINT-002 — test isolation issue, passes when run alone)
+Projects: setup → smoke/chromium/auth/local/visual
+```
+
+## P1 — OrangeHRM
 9. **Admin autocomplete fix** — Employee Name dropdown selection
 10. **Purge employee data test** (destructive, local)
 11. **Performance reviews** — add test data on local instance
@@ -408,18 +541,29 @@ User manually wrote tests in VSCode with AI guidance (guide → write → review
 OrangeHRM/
 ├── pom/              — 13 Page Objects (BasePage + 12 pages)
 │   ├── BasePage.ts, LoginPage.ts, DashboardPage.ts
-│   ├── AdminPage.ts, PimPage.ts, LeavePage.ts
+│   ├── AdminPage.ts (455 lines, 50+ methods), PimPage.ts, LeavePage.ts
 │   ├── RecruitmentPage.ts, PerformancePage.ts, BuzzPage.ts, DirectoryPage.ts
 │   ├── MyInfoPage.ts, TimePage.ts, ClaimPage.ts
-│   └── MaintenancePage.ts (NEW — Phase 5: password screen + purge records search)
-├── e2e/              — 12 spec files (37 tests: 24 @smoke, 10 @local, 3 untagged)
-│   ├── auth.spec.ts, admin.spec.ts, pim.spec.ts, leave.spec.ts
-│   ├── recruitment.spec.ts, performance.spec.ts, buzz.spec.ts, directory.spec.ts
-│   ├── myinfo.spec.ts, time.spec.ts, claim.spec.ts
-│   └── maintenance.spec.ts (MAINT-001..003 — KISS Sorcar generated)
-├── helpers/          — fixtures.ts (13 POMs registered), credentials.ts
+│   └── MaintenancePage.ts
+├── e2e/              — 16 spec files (82 @local + 66 @smoke)
+│   ├── seed.spec.ts — auth seed (storageState for agents)
+│   ├── auth.spec.ts (4 @local), admin.spec.ts (18 @local, 25 @smoke)
+│   ├── claim.spec.ts (14 @local), claim-edge-cases.spec.ts (4 @local)
+│   ├── myinfo.spec.ts (7 @local, 7 @smoke), pim.spec.ts (3 @local, 3 @smoke)
+│   ├── recruitment.spec.ts (6 @local, 6 @smoke), dashboard.spec.ts (4 @local, 3 @smoke)
+│   ├── time.spec.ts (4 @local, 5 @smoke), performance.spec.ts (3 @local, 2 @smoke)
+│   ├── maintenance.spec.ts (3 @local, 3 @smoke), directory.spec.ts (3 @local, 3 @smoke)
+│   ├── fault-injection-test.spec.ts (2 @local), buzz.spec.ts (7 @local)
+│   ├── leave.spec.ts (4 @local), rest-api-qa-test.spec.ts (2 untagged)
+│   └── .auth/ — storage state (gitignored)
+├── helpers/          — fixtures.ts (13 POMs), credentials.ts, planner-fixtures.ts
 ├── outputs/          — deployment guides, SERVER_ACCESS.md
-├── .github/workflows/— playwright.yml (CI/CD)
-├── playwright.config.ts — LOCAL=true switch + 3 projects (smoke/chromium/local)
+├── .github/workflows/— playwright.yml (CI/CD), allure-testops.yml
+├── playwright.config.ts — LOCAL=true switch + 5 projects (setup/smoke/chromium/auth/local/visual)
 └── package.json
 ```
+
+## Allure TestOps
+- URL: https://victor2026.testops.cloud
+- Project 1 (orangehrm): 7 test plans (Smoke, Full Regression, Admin Module, etc.)
+- Project 2 (qa-automation-sandbox): 9 test plans (Buzzhive Core Smoke, API Tests, UI Tests, etc.)

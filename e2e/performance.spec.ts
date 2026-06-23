@@ -10,4 +10,19 @@ test.describe('Performance', () => {
     await performancePage.gotoReviewList();
     expect(await performancePage.getCurrentUrl()).toContain('/performance');
   });
+
+  test('performance page loads @local', async ({ performancePage }) => {
+    await performancePage.goto();
+    expect(await performancePage.getCurrentUrl()).toContain('/performance');
+  });
+
+  test('performance review list loads @local', async ({ performancePage }) => {
+    await performancePage.gotoReviewList();
+    expect(await performancePage.getCurrentUrl()).toContain('/performance');
+  });
+
+  test('performance KPIs page loads @local', async ({ performancePage }) => {
+    await performancePage.gotoKPIs();
+    expect(await performancePage.getCurrentUrl()).toContain('/performance');
+  });
 });

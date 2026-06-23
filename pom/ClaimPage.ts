@@ -25,7 +25,7 @@ export class ClaimPage extends BasePage {
   }
 
   async fillEmployee(name: string) {
-    const input = this.page.locator('input[placeholder="Type for hints..."]');
+    const input = this.page.locator('input[placeholder="Type for hints..."]').first();
     await input.click();
     await input.pressSequentially(name, { delay: 100 });
     await this.page.waitForTimeout(1500);
@@ -71,15 +71,6 @@ export class ClaimPage extends BasePage {
     return this.page.locator('.oxd-toast, .oxd-text--toast-title').first().textContent().catch(() => '');
   }
 
-  async submitClaim() {
-    await this.page.click('button:has-text("Submit")');
-    await this.waitForLoad('.oxd-toast', 5000).catch(() => {});
-  }
-
-  async isClaimDetailPage() {
-    return (await this.page.url()).includes('/claim/assignClaim/id/');
-  }
-
   async gotoEmployeeClaims() {
     const link = this.page.locator('a:has-text("Employee Claims")');
     if (await link.isVisible().catch(() => false)) {
@@ -87,21 +78,96 @@ export class ClaimPage extends BasePage {
     } else {
       await super.goto('/web/index.php/claim/viewEmployeeClaims');
     }
-    await this.waitForLoad('.oxd-form', 5000).catch(() => {});
+    await this.page.waitForLoadState('networkidle');
   }
 
-  async searchByReference(refId: string) {
-    const input = this.page.locator('.oxd-input-group:has-text("Reference Id") input.oxd-input').first();
-    await input.fill(refId);
+  async gotoMyClaims() {
+    await super.goto('/web/index.php/claim/viewClaim');
+    await this.page.waitForLoadState('networkidle');
+  }
+
+  async searchClaims() {
+    await this.page.locator('button:has-text("Search")').click();
+    await this.page.waitForResponse(
+      r => r.url().includes('/api/v2/claim') && r.status() === 200,
+      { timeout: 10000 }
+    ).catch(() => {});
+  }
+
+  async resetSearch() {
+    const btn = this.page.locator('button:has-text("Reset")');
+    if (await btn.isVisible().catch(() => false)) {
+      await btn.click();
+      await this.page.waitForTimeout(500);
+    }
+  }
+
+  async getClaimRowCount() {
+    return this.page.locator('.oxd-table-card').count();
+  }
+
+  async openFirstClaimDetails() {
+    const btn = this.page.locator('.oxd-table-card button.oxd-icon-button').first();
+    if (await btn.isVisible().catch(() => false)) {
+      await btn.click();
+      await this.page.waitForTimeout(2000);
+      return true;
+    }
+    return false;
+  }
+
+  async approveClaim() {
+    const btn = this.page.locator('button:has-text("Approve")');
+    if (!await btn.isVisible().catch(() => false)) return false;
+
     const resp = this.page.waitForResponse(
-      r => r.url().includes('/api/v2/claim/employees/') && r.status() === 200,
+      r => r.url().includes('/api/v2/claim') && ['PUT', 'PATCH'].includes(r.request().method()),
       { timeout: 10000 }
     );
-    await this.page.click('button:has-text("Search")');
+    await btn.click();
+    await this.page.waitForTimeout(500);
+
+    const confirmBtn = this.page.locator('button:has-text("Yes"), button:has-text("Confirm")');
+    if (await confirmBtn.isVisible().catch(() => false)) {
+      await confirmBtn.click();
+    }
+
+    const toastBtn = this.page.locator('button.oxd-toast-close, .oxd-toast button');
+    if (await toastBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
+      await toastBtn.click();
+    }
     await resp.catch(() => {});
+    return true;
   }
 
-  async isReferenceInTable(refId: string) {
-    return this.page.locator(`.oxd-table-card:has-text("${refId}")`).isVisible().catch(() => false);
+  async rejectClaim() {
+    const btn = this.page.locator('button:has-text("Reject")');
+    if (!await btn.isVisible().catch(() => false)) return false;
+
+    const textarea = this.page.locator('textarea');
+    if (await textarea.isVisible().catch(() => false)) {
+      await textarea.fill('Rejected - expense not covered');
+    }
+
+    const resp = this.page.waitForResponse(
+      r => r.url().includes('/api/v2/claim') && ['PUT', 'PATCH'].includes(r.request().method()),
+      { timeout: 10000 }
+    );
+    await this.page.click('button[type="submit"]');
+
+    const toastBtn = this.page.locator('button.oxd-toast-close, .oxd-toast button');
+    if (await toastBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
+      await toastBtn.click();
+    }
+    await resp.catch(() => {});
+    return true;
+  }
+
+  async isApproveButtonVisible() {
+    return this.page.locator('button:has-text("Approve")').isVisible().catch(() => false);
+  }
+
+  async isRejectButtonVisible() {
+    return this.page.locator('button:has-text("Reject")').isVisible().catch(() => false);
   }
 }

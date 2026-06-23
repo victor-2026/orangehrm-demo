@@ -14,7 +14,7 @@ test.describe('Recruitment', () => {
     expect(heading).toContain('Recruitment');
   });
 
-  test('can add a new candidate', async ({ recruitmentPage, page, loggedInPage }) => {
+  test('can add a new candidate @smoke', async ({ recruitmentPage, page, loggedInPage }) => {
     await recruitmentPage.goto();
     await recruitmentPage.clickAdd();
     expect(page.url()).toContain('/addCandidate');
@@ -61,6 +61,54 @@ test.describe('Recruitment', () => {
   });
 
   test('recruitment topbar tabs visible @smoke', async ({ recruitmentPage, loggedInPage }) => {
+    await recruitmentPage.goto();
+    const tabs = await recruitmentPage.getTopbarTabs();
+    expect(tabs).toContain('Candidates');
+    expect(tabs).toContain('Vacancies');
+  });
+
+  test('candidates page loads @local', async ({ recruitmentPage, loggedInPage }) => {
+    await recruitmentPage.goto();
+    expect(await recruitmentPage.getCurrentUrl()).toContain('/recruitment/viewCandidates');
+    const heading = await recruitmentPage.getHeading();
+    expect(heading).toContain('Recruitment');
+  });
+
+  test('can add a new candidate @local', async ({ recruitmentPage, page, loggedInPage }) => {
+    const ts = Date.now();
+    const firstName = `Test_${ts}`;
+    const lastName = `Candidate_${ts}`;
+    const email = `test_${ts}@test.com`;
+    await recruitmentPage.goto();
+    await recruitmentPage.clickAdd();
+    expect(page.url()).toContain('/addCandidate');
+    await recruitmentPage.fillCandidateForm(firstName, lastName, email);
+    await recruitmentPage.clickSave();
+    await recruitmentPage.goto();
+    await recruitmentPage.searchCandidate(firstName);
+    await expect(page.locator('.oxd-table-body')).toContainText(firstName);
+  });
+
+  test('candidates search form visible @local', async ({ recruitmentPage, loggedInPage }) => {
+    await recruitmentPage.goto();
+    const fields = await recruitmentPage.getSearchFormFields();
+    expect(fields.length).toBeGreaterThanOrEqual(3);
+    expect(fields).toContain('Job Title');
+    expect(fields).toContain('Vacancy');
+  });
+
+  test('vacancies page loads @local', async ({ recruitmentPage, loggedInPage }) => {
+    await recruitmentPage.gotoVacancies();
+    expect(await recruitmentPage.getCurrentUrl()).toContain('/recruitment/viewJobVacancy');
+  });
+
+  test('vacancies table visible @local', async ({ recruitmentPage, loggedInPage }) => {
+    await recruitmentPage.gotoVacancies();
+    const tableVisible = await recruitmentPage.isTableVisible();
+    expect(tableVisible).toBe(true);
+  });
+
+  test('recruitment topbar tabs visible @local', async ({ recruitmentPage, loggedInPage }) => {
     await recruitmentPage.goto();
     const tabs = await recruitmentPage.getTopbarTabs();
     expect(tabs).toContain('Candidates');

@@ -27,7 +27,7 @@ export class LoginPage extends BasePage {
     await this.fillUsername(CREDENTIALS.admin.username);
     await this.fillPassword(CREDENTIALS.admin.password);
     await this.clickLogin();
-    await this.waitForLoad('.oxd-topbar-header-title', 15000);
+    await this.waitForLoad('.oxd-topbar-header-title', 30000);
   }
 
   async getErrorMessage() {
