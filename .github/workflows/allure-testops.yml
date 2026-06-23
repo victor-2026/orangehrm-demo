@@ -30,7 +30,7 @@ jobs:
 
       - name: Run tests with allurectl
         run: |
-          ./allurectl watch -- npm run test:smoke
+          ./allurectl watch --token "$ALLURE_TOKEN" --project-id "$ALLURE_PROJECT_ID" --endpoint "$ALLURE_ENDPOINT" -- npm run test:smoke
         env:
           ALLURE_ENDPOINT: ${{ secrets.ALLURE_ENDPOINT }}
           ALLURE_TOKEN: ${{ secrets.ALLURE_TOKEN }}
