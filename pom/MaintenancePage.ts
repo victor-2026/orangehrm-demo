@@ -56,8 +56,11 @@ export class MaintenancePage extends BasePage {
   }
 
   async getPurgeRecordsFormVisible() {
-    await this.waitForLoad('.oxd-topbar-header-title', 15000).catch(() => {});
-    return !(await this.page.locator('h6:has-text("Administrator Access")').isVisible().catch(() => false));
+    // Wait for either maintenance area or password screen to appear
+    await this.page.waitForSelector('.oxd-topbar-header-title, h6:has-text("Administrator Access")', { timeout: 15000 }).catch(() => {});
+    // Check that we're past the password screen
+    const onPasswordScreen = await this.page.locator('h6:has-text("Administrator Access")').isVisible().catch(() => false);
+    return !onPasswordScreen;
   }
 
   async getAuthenticationError() {
