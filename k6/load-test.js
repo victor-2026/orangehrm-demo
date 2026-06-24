@@ -33,6 +33,20 @@ export const options = {
       tags: { scenario: 'load' },
       gracefulStop: '30s',
     },
+    stress: {
+      exec: 'mainFlow',
+      executor: 'ramping-vus',
+      startVUs: 20,
+      stages: [
+        { duration: '30s', target: 50 },
+        { duration: '1m', target: 50 },
+        { duration: '30s', target: 80 },
+        { duration: '1m', target: 80 },
+        { duration: '30s', target: 20 },
+      ],
+      tags: { scenario: 'stress' },
+      gracefulStop: '30s',
+    },
     writes: {
       exec: 'writeFlow',
       executor: 'constant-vus',
@@ -40,11 +54,23 @@ export const options = {
       duration: '2m',
       tags: { scenario: 'writes' },
     },
+    'writes-stress': {
+      exec: 'writeFlow',
+      executor: 'ramping-vus',
+      startVUs: 5,
+      stages: [
+        { duration: '30s', target: 15 },
+        { duration: '1m', target: 15 },
+        { duration: '30s', target: 5 },
+      ],
+      tags: { scenario: 'writes-stress' },
+      gracefulStop: '30s',
+    },
   },
   thresholds: {
-    errors: ['rate<0.15'],
-    http_req_duration: ['p(95)<5000'],
-    write_operations: ['count>50'],
+    errors: ['rate<0.20'],
+    http_req_duration: ['p(95)<8000'],
+    write_operations: ['count>100'],
   },
 };
 
