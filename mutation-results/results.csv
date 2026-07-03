@@ -1,0 +1,15 @@
+mutation_id,mutation_name,tool,total,passed,failed,skipped,caught
+,Control (no mutation),PW Agents,8,8,0,0,no
+,Control (no mutation),KISS,8,8,0,1,no
+1,API 404 on PUT /config,PW Agents,1,1,7,0,yes
+1,API 404 on PUT /config,KISS,1,1,7,1,yes
+2,API 500 on POST,PW Agents,1,1,7,0,yes
+2,API 500 on POST,KISS,1,1,7,1,yes
+3,Toggle reverts,PW Agents,4,4,4,0,yes
+3,Toggle reverts,KISS,5,5,3,1,yes
+4,Validation text Required→Mandatory,PW Agents,6,6,2,0,yes
+4,Validation text Required→Mandatory,KISS,7,7,1,1,yes
+5,API 10s delay,PW Agents,3,3,5,0,yes
+5,API 10s delay,KISS,2,2,6,1,yes
+6,Page heading changed,PW Agents,6,6,2,0,yes
+6,Page heading changed,KISS,7,7,1,1,yes
