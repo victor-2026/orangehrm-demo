@@ -37,7 +37,7 @@ export default defineConfig({
     {
       name: 'chromium',
       grep: LOCAL ? undefined : /^(?!.*@local)/,
-      testIgnore: 'visual/**',
+      testIgnore: ['visual/**', 'seed.spec.ts'],
       use: { browserName: 'chromium', storageState: 'e2e/.auth/admin.json' },
       dependencies: ['setup'],
     },

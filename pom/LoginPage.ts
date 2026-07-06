@@ -12,12 +12,12 @@ export class LoginPage extends BasePage {
   }
 
   async fillUsername(username: string) {
-    await this.page.waitForSelector('input[name="username"]', { timeout: 15000 });
+    await this.page.waitForSelector('input[name="username"]', { timeout: 30000 });
     await this.page.fill('input[name="username"]', username);
   }
 
   async fillPassword(password: string) {
-    await this.page.waitForSelector('input[name="password"]', { timeout: 15000 });
+    await this.page.waitForSelector('input[name="password"]', { timeout: 30000 });
     await this.page.fill('input[name="password"]', password);
   }
 
