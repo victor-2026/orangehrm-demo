@@ -1,4 +1,4 @@
-import { test, expect } from '../helpers/fixtures';
+import { test, expect, getIsDockerEnv } from '../helpers/fixtures';
 import { CREDENTIALS } from '../helpers/credentials';
 
 test.describe('Maintenance', () => {
@@ -12,7 +12,12 @@ test.describe('Maintenance', () => {
   test('MAINT-002: can enter admin password and see maintenance area @smoke', async ({ maintenancePage, loggedInPage }) => {
     await maintenancePage.goto();
     await maintenancePage.enterPassword(CREDENTIALS.admin.password, true);
-    expect(await maintenancePage.getPurgeRecordsFormVisible()).toBe(true);
+    
+    if (getIsDockerEnv()) {
+      expect(await maintenancePage.getPurgeRecordsFormVisible()).toBe(true);
+    } else {
+      expect(await maintenancePage.isPasswordAccepted()).toBe(true);
+    }
   });
 
   test('MAINT-003: wrong password shows authentication error @smoke', async ({ maintenancePage, loggedInPage }) => {

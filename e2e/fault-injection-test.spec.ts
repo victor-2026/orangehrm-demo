@@ -25,9 +25,8 @@ test.describe('PIM Employee List — Fault Injection (with skill)', () => {
     });
 
     await page.goto('/web/index.php/pim/viewEmployeeList');
-    
-    // Wait for page to load (table may not render due to mutation)
-    await page.waitForTimeout(3000);
+    await page.waitForLoadState('networkidle');
+    await page.waitForSelector('.oxd-table-body .oxd-table-row', { timeout: 15000 }).catch(() => {});
     
     const tableBody = page.locator('.oxd-table-body');
     
@@ -68,7 +67,8 @@ test.describe('PIM Employee List — Fault Injection (with skill)', () => {
     });
 
     await page.goto('/web/index.php/pim/viewEmployeeList');
-    await page.waitForTimeout(3000);
+    await page.waitForLoadState('networkidle');
+    await page.waitForSelector('.oxd-table-body .oxd-table-row', { timeout: 15000 }).catch(() => {});
     
     const tableBody = page.locator('.oxd-table-body');
     const firstNameCell = tableBody.locator('.oxd-table-cell').nth(2);

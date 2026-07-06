@@ -22,7 +22,7 @@ test.describe('Claim Edge Cases', () => {
     const cancelBtn = page.locator('button:has-text("Cancel")');
     await expect(cancelBtn).toBeVisible();
     await cancelBtn.click();
-    await page.waitForTimeout(1000);
+    await page.waitForLoadState('networkidle');
 
     const addBtn = page.locator('button:has-text("Assign Claim")');
     await expect(addBtn).toBeVisible();
@@ -37,7 +37,7 @@ test.describe('Claim Edge Cases', () => {
     expect(selectCount).toBeGreaterThanOrEqual(2);
 
     await page.click('button[type="submit"]');
-    await page.waitForTimeout(1000);
+    await page.waitForSelector('.oxd-input-group__message', { timeout: 5000 });
 
     const errors = page.locator('.oxd-input-group__message');
     const errorCount = await errors.count();

@@ -44,7 +44,7 @@ test.describe('PIM — Employee Management', () => {
     const hasDefaultData = await page.locator('.oxd-table-body .oxd-table-cell').first().isVisible().catch(() => false);
     if (!hasDefaultData) {
       await pimPage.searchEmployee('a');
-      await page.waitForTimeout(1000);
+      await page.waitForLoadState('networkidle');
     }
     const hasData = await page.locator('.oxd-table-body .oxd-table-cell').first().isVisible().catch(() => false);
     test.skip(!hasData, 'No employee data on shared demo even after search');

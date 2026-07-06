@@ -53,12 +53,12 @@ export class MyInfoPage extends BasePage {
   }
 
   async clickSubTab(name: string) {
-    await this.page.waitForTimeout(2000);
     const tab = this.page.getByText(name, { exact: false }).first();
     const visible = await tab.isVisible().catch(() => false);
     if (visible) {
       await tab.click();
-      await this.page.waitForTimeout(2000);
+      await this.page.waitForLoadState('networkidle').catch(() => {});
+      await this.page.waitForSelector('.oxd-form', { timeout: 10000 }).catch(() => {});
     }
   }
 

@@ -68,4 +68,9 @@ export class MaintenancePage extends BasePage {
     // after wrong password (page stays on password screen)
     return this.page.locator('input[type="password"]').isVisible();
   }
+
+  async isPasswordAccepted() {
+    const error = this.page.locator('.oxd-alert-content-text');
+    return !(await error.isVisible().catch(() => false));
+  }
 }

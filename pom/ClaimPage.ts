@@ -28,13 +28,11 @@ export class ClaimPage extends BasePage {
     const input = this.page.locator('input[placeholder="Type for hints..."]').first();
     await input.click();
     await input.pressSequentially(name, { delay: 100 });
-    await this.page.waitForTimeout(1500);
     const dropdown = this.page.locator('.oxd-autocomplete-dropdown');
-    if (await dropdown.isVisible({ timeout: 3000 }).catch(() => false)) {
+    if (await dropdown.isVisible({ timeout: 5000 }).catch(() => false)) {
       const option = dropdown.locator('.oxd-autocomplete-option').first();
-      if (await option.isVisible({ timeout: 2000 }).catch(() => false)) {
+      if (await option.isVisible({ timeout: 3000 }).catch(() => false)) {
         await option.click({ force: true });
-        await this.page.waitForTimeout(500);
       }
     }
   }
@@ -98,7 +96,7 @@ export class ClaimPage extends BasePage {
     const btn = this.page.locator('button:has-text("Reset")');
     if (await btn.isVisible().catch(() => false)) {
       await btn.click();
-      await this.page.waitForTimeout(500);
+      await this.page.waitForLoadState('networkidle').catch(() => {});
     }
   }
 
@@ -110,7 +108,7 @@ export class ClaimPage extends BasePage {
     const btn = this.page.locator('.oxd-table-card button.oxd-icon-button').first();
     if (await btn.isVisible().catch(() => false)) {
       await btn.click();
-      await this.page.waitForTimeout(2000);
+      await this.page.waitForLoadState('networkidle').catch(() => {});
       return true;
     }
     return false;
@@ -125,7 +123,7 @@ export class ClaimPage extends BasePage {
       { timeout: 10000 }
     );
     await btn.click();
-    await this.page.waitForTimeout(500);
+    await this.page.waitForLoadState('networkidle').catch(() => {});
 
     const confirmBtn = this.page.locator('button:has-text("Yes"), button:has-text("Confirm")');
     if (await confirmBtn.isVisible().catch(() => false)) {

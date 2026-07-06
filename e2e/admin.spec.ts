@@ -187,7 +187,7 @@ test.describe('Admin Module', () => {
 
       // Delete the test user
       await adminPage.deleteUserWithConfirm(username);
-      await page.waitForTimeout(2000);
+      await page.waitForLoadState('networkidle');
 
       // Verify user is gone by searching again
       await adminPage.searchUser(username);
@@ -198,7 +198,7 @@ test.describe('Admin Module', () => {
     test('2.16 View user details @smoke', async ({ adminPage, page, loggedInPage }) => {
       await adminPage.goto();
       await adminPage.searchUser('Admin');
-      await adminPage.page.waitForTimeout(1000);
+      await adminPage.waitForLoad('.oxd-table-body .oxd-table-row', 10000);
       await adminPage.clickUserDetails('Admin');
       expect(await adminPage.isUserFormVisible()).toBe(true);
     });
@@ -269,7 +269,7 @@ test.describe('Admin Module', () => {
       await adminPage.goto();
       await adminPage.navigateToSubTab('Organization', 'General Information');
       await page.locator('.oxd-switch-wrapper label').click();
-      await page.waitForTimeout(500);
+      await page.waitForLoadState('networkidle');
       await adminPage.fillByLabel('Organization Name', 'Test Organization');
       expect(page.url()).toContain('/admin/viewOrganizationGeneralInformation');
     });
@@ -285,7 +285,7 @@ test.describe('Admin Module', () => {
       await adminPage.goto();
       await adminPage.navigateToSubTab('Organization', 'Locations');
       await page.click('button:has-text("Add")');
-      await page.waitForTimeout(1000);
+      await page.waitForSelector('.oxd-form', { timeout: 10000 });
       await adminPage.fillByLabel('Name', `Loc_${Date.now()}`);
       await adminPage.fillByLabel('City', 'Test City');
       await adminPage.fillByLabel('Country', 'United States');
@@ -299,7 +299,7 @@ test.describe('Admin Module', () => {
       await adminPage.navigateToSubTab('Organization', 'Locations');
       await page.click('button:has-text("Add")');
       await page.click('button[type="submit"]');
-      await page.waitForTimeout(1000);
+      await page.waitForSelector('.oxd-input-field-error-message', { timeout: 5000 });
       const errorMessages = page.locator('.oxd-input-field-error-message');
       expect(await errorMessages.count()).toBeGreaterThan(0);
     });

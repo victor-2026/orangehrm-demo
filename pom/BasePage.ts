@@ -1,10 +1,11 @@
 import { Page, expect } from '@playwright/test';
 
 export class BasePage {
-  constructor(protected readonly page: Page) {}
+  constructor(public readonly page: Page) {}
 
   async goto(path: string, timeout = 30000) {
-    await this.page.goto(path, { timeout, waitUntil: 'domcontentloaded' });
+    const baseURL = process.env.BASE_URL || (process.env.LOCAL === 'true' ? 'http://localhost:8080' : 'https://opensource-demo.orangehrmlive.com');
+    await this.page.goto(`${baseURL}${path}`, { timeout, waitUntil: 'domcontentloaded' });
   }
 
   protected async waitForLoad(selector: string, timeout = 10000) {
@@ -17,7 +18,6 @@ export class BasePage {
     if (await select.isVisible().catch(() => false)) {
       await select.click();
       await this.page.locator(`.oxd-select-option:has-text("${value}")`).first().click();
-      await this.page.waitForTimeout(300);
       return;
     }
     const input = group.locator('input.oxd-input, textarea.oxd-textarea');

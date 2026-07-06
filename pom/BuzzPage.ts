@@ -25,7 +25,7 @@ export class BuzzPage extends BasePage {
   async likeFirstPost() {
     const likeBtn = this.page.locator('.orangehrm-buzz-post-actions button').first();
     await likeBtn.click();
-    await this.page.waitForTimeout(1000);
+    await this.page.waitForResponse(r => r.url().includes('/api/v2/buzz') && ['POST', 'PUT'].includes(r.request().method()), { timeout: 5000 }).catch(() => {});
   }
 
   async getFirstPostLikeCount() {

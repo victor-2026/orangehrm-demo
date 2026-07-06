@@ -22,5 +22,5 @@ export async function createClaim(
   await claimPage.selectCurrency(overrides?.currency || DEFAULT_CURRENCY);
   await claimPage.fillRemarks(overrides?.remarks || `Auto claim ${Date.now()}`);
   await claimPage.clickCreate();
-  await page.waitForTimeout(1500);
+  await page.waitForSelector('.oxd-toast', { timeout: 10000 }).catch(() => {});
 }

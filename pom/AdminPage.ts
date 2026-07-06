@@ -24,13 +24,11 @@ export class AdminPage extends BasePage {
     const empInput = this.page.locator('input[placeholder="Type for hints..."]');
     await empInput.click();
     await empInput.pressSequentially(empName, { delay: 100 });
-    await this.page.waitForTimeout(1500);
     const dropdown = this.page.locator('.oxd-autocomplete-dropdown');
-    if (await dropdown.isVisible({ timeout: 3000 }).catch(() => false)) {
+    if (await dropdown.isVisible({ timeout: 5000 }).catch(() => false)) {
       await empInput.press('ArrowDown');
-      await this.page.waitForTimeout(300);
+      await dropdown.locator('.oxd-autocomplete-option').first().waitFor({ state: 'visible', timeout: 3000 }).catch(() => {});
       await empInput.press('Enter');
-      await this.page.waitForTimeout(500);
     }
 
     await selects.nth(1).click();
@@ -45,7 +43,7 @@ export class AdminPage extends BasePage {
     const resp = this.page.waitForResponse(r => r.url().includes('/api/v2/admin/users') && ['POST', 'PUT'].includes(r.request().method()), { timeout: 10000 }).catch(() => null);
     await this.page.click('button[type="submit"]');
     await resp;
-    await this.page.waitForTimeout(1000);
+    await this.page.waitForSelector('.oxd-toast', { timeout: 5000 }).catch(() => {});
   }
 
   async searchUser(username: string) {
@@ -76,7 +74,7 @@ export class AdminPage extends BasePage {
     const userRoleSelect = this.page.locator('.oxd-form .oxd-select-text-input').first();
     await userRoleSelect.click();
     await this.page.click(`.oxd-select-option:has-text("${userRole}")`);
-    await this.page.waitForTimeout(500);
+    await this.waitForLoad('.oxd-table-body .oxd-table-row').catch(() => {});
 
     const statusSelect = this.page.locator('.oxd-form .oxd-select-text-input').nth(1);
     await statusSelect.click();
@@ -96,7 +94,7 @@ export class AdminPage extends BasePage {
     const searchInput = this.page.locator('.oxd-form .oxd-input-group input.oxd-input').first();
     await searchInput.fill('ZZZNonoExistsUser');
     await this.page.click('button:has-text("Search")');
-    await this.page.waitForTimeout(2000);
+    await this.page.waitForLoadState('networkidle');
   }
 
   async clickUserDetails(username: string) {
@@ -113,7 +111,7 @@ export class AdminPage extends BasePage {
     const resp = this.page.waitForResponse(r => r.url().includes('/api/v2/admin/users') && r.request().method() === 'PUT', { timeout: 10000 }).catch(() => null);
     await this.page.click('button[type="submit"]');
     await resp;
-    await this.page.waitForTimeout(1000);
+    await this.page.waitForSelector('.oxd-toast', { timeout: 5000 }).catch(() => {});
   }
 
   async getTopbarSubTabs(): Promise<string[]> {
@@ -195,7 +193,7 @@ export class AdminPage extends BasePage {
     const input = this.page.locator('.oxd-input').first();
     await input.waitFor({ state: 'visible', timeout: 15000 });
     await input.fill(name);
-    await this.page.waitForTimeout(2000);
+    await this.page.waitForResponse(r => r.url().includes('/api/v2/admin/skill') && r.status() === 200, { timeout: 10000 }).catch(() => {});
     await this.waitForLoad('.oxd-table');
   }
 
@@ -357,7 +355,7 @@ export class AdminPage extends BasePage {
     await row.locator('button').first().click();
     await this.page.locator('.oxd-overlay:not(.oxd-overlay--hide)').waitFor({ state: 'visible', timeout: 5000 });
     await this.page.click('button:has-text("Yes, Delete")');
-    await this.page.waitForTimeout(1000);
+    await this.waitForLoad('.oxd-table-body .oxd-table-row', 10000).catch(() => {});
   }
 
   async cancelDelete(username: string) {
@@ -365,7 +363,7 @@ export class AdminPage extends BasePage {
     await row.locator('button').first().click();
     await this.page.locator('.oxd-overlay:not(.oxd-overlay--hide)').waitFor({ state: 'visible', timeout: 5000 });
     await this.page.click('button:has-text("No, Cancel")');
-    await this.page.waitForTimeout(500);
+    await this.page.locator('.oxd-overlay--hide').waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
   }
 
   async getTopbarTabs(): Promise<string[]> {
@@ -381,7 +379,7 @@ export class AdminPage extends BasePage {
 
   async clickTopbarTab(name: string) {
     await this.page.locator(`.oxd-topbar-body-nav-tab-item:has-text("${name}")`).click();
-    await this.page.waitForTimeout(500);
+    await this.page.waitForLoadState('networkidle').catch(() => {});
   }
 
   async getSubTabs(): Promise<string[]> {
@@ -397,7 +395,7 @@ export class AdminPage extends BasePage {
 
   async clickSubTab(name: string) {
     await this.page.locator(`.oxd-dropdown-menu .oxd-topbar-body-nav-tab-link:has-text("${name}")`).click();
-    await this.page.waitForTimeout(1000);
+    await this.page.waitForLoadState('networkidle').catch(() => {});
   }
 
   async getTableHeaders(): Promise<string[]> {

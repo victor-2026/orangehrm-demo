@@ -20,8 +20,8 @@ export default defineConfig({
   snapshotPathTemplate: '{snapshotDir}/{testFileDir}/{arg}-{projectName}{ext}',
   expect: {
     toHaveScreenshot: {
-      maxDiffPixelRatio: 0.02,
-      threshold: 0.2,
+      maxDiffPixelRatio: 0.01,
+      threshold: 0.05,
     },
   },
   projects: [
@@ -38,6 +38,7 @@ export default defineConfig({
     {
       name: 'chromium',
       grep: LOCAL ? undefined : /^(?!.*@local)/,
+      testIgnore: 'visual/**',
       use: { browserName: 'chromium', storageState: 'e2e/.auth/admin.json' },
       dependencies: ['setup'],
     },
@@ -55,7 +56,7 @@ export default defineConfig({
     {
       name: 'visual',
       testMatch: 'visual/**/*.spec.ts',
-      use: { browserName: 'chromium', storageState: 'e2e/.auth/admin.json' },
+      use: { browserName: 'chromium', storageState: 'e2e/.auth/admin.json', baseURL: 'http://localhost:8080' },
       dependencies: ['setup'],
     },
   ],
