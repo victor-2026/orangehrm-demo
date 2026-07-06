@@ -35,7 +35,7 @@ export async function adaptiveExpect<T>(
   demoMessage: string,
 ) {
   const result = await condition;
-  if (isDocker) {
+  if (getIsDockerEnv()) {
     expect(result, dockerMessage).toBeTruthy();
   } else {
     expect(result, demoMessage).toBeTruthy();
@@ -43,7 +43,7 @@ export async function adaptiveExpect<T>(
 }
 
 // Helper method to get current environment
-export const getEnvironment = () => isDocker() ? 'docker' : 'demo';
+export const getEnvironment = () => getIsDockerEnv() ? 'docker' : 'demo';
 
 // Helper to log environment info
 export async function logEnvironmentInfo() {
@@ -60,12 +60,12 @@ export async function getFullURL(path: string): Promise<string> {
 
 // Helper for clean error messages across environments
 export function getEnvironmentPrefix(): string {
-  return isDocker() ? 'DOCKER' : 'DEMO';
+  return getIsDockerEnv() ? 'DOCKER' : 'DEMO';
 }
 
 // Environment-specific wait helper
 export async function adaptiveWaitFor(selector: string, timeout: number = 10000): Promise<void> {
-  const isDockerEnv = isDocker();
+  const isDockerEnv = getIsDockerEnv();
   const baseTimeout = isDockerEnv ? timeout * 1.5 : timeout;
   await new Promise(resolve => setTimeout(resolve, 500));
   await new Promise(resolve => setTimeout(resolve, baseTimeout));
@@ -149,7 +149,7 @@ export const test = base.extend<Fixtures>({
     await use(login);
   },
   isDocker: async ({}, use) => {
-    await use(isDocker);
+    await use(getIsDockerEnv());
   },
   baseURL: async ({}, use) => {
     await use(process.env.BASE_URL || '');

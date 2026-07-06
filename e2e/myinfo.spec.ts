@@ -16,7 +16,8 @@ test.describe('My Info', () => {
   });
 
   test('contact details page loads @smoke', async ({ myInfoPage, page, loggedInPage }) => {
-    await page.goto('/web/index.php/pim/contactDetails/empNumber/1');
+    await myInfoPage.goto();
+    await myInfoPage.clickSubTab('Contact Details');
     await page.waitForLoadState('networkidle');
     expect(page.url()).toContain('contactDetails');
   });
@@ -28,7 +29,8 @@ test.describe('My Info', () => {
   });
 
   test('emergency contacts page loads @smoke', async ({ myInfoPage, page, loggedInPage }) => {
-    await page.goto('/web/index.php/pim/viewEmergencyContacts/empNumber/1');
+    await myInfoPage.goto();
+    await myInfoPage.clickSubTab('Emergency Contacts');
     await page.waitForLoadState('networkidle');
     expect(page.url()).toContain('viewEmergencyContacts');
   });
@@ -40,7 +42,8 @@ test.describe('My Info', () => {
   });
 
   test('dependents page loads @smoke', async ({ myInfoPage, page, loggedInPage }) => {
-    await page.goto('/web/index.php/pim/viewDependents/empNumber/1');
+    await myInfoPage.goto();
+    await myInfoPage.clickSubTab('Dependents');
     await page.waitForLoadState('networkidle');
     expect(page.url()).toContain('viewDependents');
   });
@@ -52,7 +55,8 @@ test.describe('My Info', () => {
   });
 
   test('job page loads @smoke', async ({ myInfoPage, page, loggedInPage }) => {
-    await page.goto('/web/index.php/pim/viewJobDetails/empNumber/1');
+    await myInfoPage.goto();
+    await myInfoPage.clickSubTab('Job');
     await page.waitForLoadState('networkidle');
     expect(page.url()).toContain('viewJobDetails');
   });
@@ -64,7 +68,8 @@ test.describe('My Info', () => {
   });
 
   test('salary page loads @smoke', async ({ myInfoPage, page, loggedInPage }) => {
-    await page.goto('/web/index.php/pim/viewSalaryList/empNumber/1');
+    await myInfoPage.goto();
+    await myInfoPage.clickSubTab('Salary');
     await page.waitForLoadState('networkidle');
     expect(page.url()).toContain('viewSalaryList');
   });
@@ -76,7 +81,8 @@ test.describe('My Info', () => {
   });
 
   test('qualifications page loads @smoke', async ({ myInfoPage, page, loggedInPage }) => {
-    await page.goto('/web/index.php/pim/viewQualifications/empNumber/1');
+    await myInfoPage.goto();
+    await myInfoPage.clickSubTab('Qualifications');
     await page.waitForLoadState('networkidle');
     expect(page.url()).toContain('viewQualifications');
   });
