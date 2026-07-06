@@ -22,7 +22,7 @@ test.describe('Workspace Notification Configuration', () => {
 
   test.describe('1. Page Load & UI Elements', () => {
 
-    test('1.1 Page loads with correct heading @smoke', async ({ page }) => {
+    test('1.1 Page loads with correct heading @local', async ({ page }) => {
       await gotoConfig(page);
       await expect(page).toHaveURL(/workspaceNotificationConfiguration/);
 

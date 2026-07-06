@@ -36,3 +36,4 @@ Thumbs.db
 tmp/
 debug-time.js
 dummy_search.txt
+.playwright-mcp/

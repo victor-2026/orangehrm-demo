@@ -9,7 +9,7 @@ test.describe('Workspace Notification Configuration - KISS', () => {
 
   test.describe('1. Page Load & Basic Functionality', () => {
 
-    test('1.1 Page loads with correct heading @smoke', async ({ workspaceNotificationPage, page }) => {
+    test('1.1 Page loads with correct heading @local', async ({ workspaceNotificationPage, page }) => {
       await workspaceNotificationPage.goto();
       await expect(page).toHaveURL(/workspaceNotificationConfiguration/);
       await expect(page.locator('.orangehrm-main-title')).toContainText('Workspace Notification Configuration');

@@ -1,10 +1,55 @@
 # Session Checkpoint - OrangeHRM
 
-**Date:** 2026-06-14 → 2026-06-23
-**Session:** Admin 5.8.1 fixes + MyInfo @local + 8 modules @local + Auth @local + Fault-injection @local + Claim edge cases + Buzz/Leave @local + 6 flaky fixes
+**Date:** 2026-07-05
+**Session:** Article 9 — 3 AI Tools comparison on Workspace Notifications (Autonoma 136 specs + PW Agents 11 tests + KISS 8 tests + mutation 6/6)
 **Status:** ACTIVE
 
-## Session 2026-06-23 — Full @local Coverage (82 tests)
+## Session 70 (2026-07-05) — Article 9 data gathering + 3 new tests
+
+### What Was Done
+1. **OrangeHRM 5.8→5.9 changelog analysis:** 5.9 — first new feature in 2 years. 5.8 and 5.8.1 shipped only security improvements.
+2. **Autonoma documentation research:** No depth-vs-breadth config exists — pipeline always covers full app. Only KB `core: true` flag affects prioritization.
+3. **Coverage comparison (PW Agents 8 vs KISS 8):**
+   - 4 tests identical (page load, platform switch, empty submit, create)
+   - PW gaps: Google Chat validation, disable feature, table entries, duplicate
+   - KISS gaps: triple toggle, Send Test button, API cleanup
+4. **Traceability matrix:** 2 Autonoma specs map to ALL 16 tests. Specs describe intent, tests assert behavior.
+5. **+3 new tests** (workspace-notifications.spec.ts):
+   - 5.1 Cross-platform URL mismatch
+   - 5.2 Empty submission with platform+webhook
+   - 5.3 Time picker open+edit
+   - Total: **11 tests** in PW Agents file
+6. **Autonoma CLI artifacts uploaded** (resume → complete). SDK remain unfinished (static Docker, no backend)
+7. **Mutation runner:** timed out on 11 tests (M1-KISS 600s+). Previous 8-test results (6/6 caught) remain valid.
+
+### Mutation Results (8 tests each)
+| Mutation | PW Agents | KISS |
+|----------|:---------:|:----:|
+| 6/6 caught | ✅ | ✅ |
+
+### Article 9 Updates
+- 5.9 = first new feature in 2 years (line 25)
+- 2 specs fully traceable to 16 tests (line 79)
+- Each suite has unique blind spots, equally resilient where they overlap (line 98)
+
+### Updated Workspace Notifications Coverage
+```
+PW Agents: workspace-notifications.spec.ts — 11 tests (8 existing + 3 new)
+KISS:      kiss + advanced — 8 tests
+Autonoma:  2 .md specs (not executable)
+Total:     16 executable + 2 spec files
+```
+
+### Files Modified
+- `e2e/workspace-notifications.spec.ts` — +3 tests (5.1-5.3), total 11
+- `~/Articles/linkedin-posts/AI-Agents/9-three-tools-one-feature.md` — +3 insights (4 lines)
+
+### Key Decisions
+- Autonoma GitHub integration: deferred
+- Claim mutation runner: removed from plan (no PW Agents counterpart)
+- Autonoma feedback: depth limitation, non-executable specs, mutation testing blind spot
+
+---
 
 ### What Was Done
 1. **Admin module — 18/18 @local tests fixed for 5.8.1 DOM:**

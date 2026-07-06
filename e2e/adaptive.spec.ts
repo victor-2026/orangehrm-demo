@@ -1,7 +1,7 @@
 import { test, expect, getIsDockerEnv, logEnvironmentInfo } from '../helpers/fixtures';
 
-// Expected heading for current environment  
-const expectedHeading = getIsDockerEnv() ? 'Dashboard' : 'Pending Tasks';
+// Dashboard heading is consistent across all environments in 5.9
+const expectedHeading = 'Dashboard';
 
 test.describe('Adaptive @smoke — work on both Docker and Demo', () => {
 
