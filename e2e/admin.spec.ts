@@ -476,6 +476,8 @@ test.describe('Admin Module', () => {
 
     test('9.4 Employee not found @smoke', async ({ adminPage, page, loggedInPage }) => {
       await adminPage.goto();
+      await page.click('button:has-text("Reset")');
+      await page.waitForTimeout(500);
       await adminPage.fillByLabel('Username', 'ZZZNonoExistsUser');
       await page.click('button:has-text("Search")');
       await page.waitForLoadState('networkidle');

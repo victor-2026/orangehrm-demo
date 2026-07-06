@@ -91,6 +91,8 @@ export class AdminPage extends BasePage {
   }
 
   async searchWithNoResults() {
+    await this.page.click('button:has-text("Reset")');
+    await this.page.waitForTimeout(500);
     const searchInput = this.page.locator('.oxd-form .oxd-input-group input.oxd-input').first();
     await searchInput.fill('ZZZNonoExistsUser');
     await this.page.click('button:has-text("Search")');

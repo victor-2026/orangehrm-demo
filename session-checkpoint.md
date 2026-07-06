@@ -1,10 +1,59 @@
 # Session Checkpoint - OrangeHRM
 
-**Date:** 2026-07-05
-**Session:** Article 9 — 3 AI Tools comparison on Workspace Notifications (Autonoma 136 specs + PW Agents 11 tests + KISS 8 tests + mutation 6/6)
+**Date:** 2026-07-06
+**Session:** Session 71 — CI fix: 5 multi-module failures + 2 new Claim KISS tests + Allure TestOps removal
 **Status:** ACTIVE
 
-## Session 70 (2026-07-05) — Article 9 data gathering + 3 new tests
+## Session 71 (2026-07-06) — CI fix: isDocker refactor, myinfo URLs, Allure removal + 2 Claim tests
+
+### What Was Done
+1. **2 new KISS Claim tests** (`e2e/claim.spec.ts`):
+   - Submit claim via self-service (checks URL redirect to detail page)
+   - Admin views assigned claim in Employee Claims (clicks View Details)
+   - **12/12 Claim tests pass locally** ✅
+
+2. **`isDocker()` → `getIsDockerEnv()` refactor** (3 files):
+   - `adaptive.spec.ts` — import + usage fixed (was `ReferenceError`)
+   - `maintenance.spec.ts` — same fix
+   - `helpers/fixtures.ts` — 4 places: conditional fixture value, export name, `isDocker` var → `getIsDockerEnv()`, `adaptiveExpect` guard
+
+3. **`myinfo.spec.ts` — relative URL fix:**
+   - 5 `page.goto('/web/index.php/...')` replaced with `myInfoPage.goto()` + `clickSubTab()`
+   - Root cause: Playwright resolves `baseURL` at config time, but `@local` project has different `baseURL` than `@smoke` — relative paths broke in CI
+
+4. **`claim.spec.ts` — toast → URL assertion:**
+   - OracleHRM 5.9 redirects to claim detail page on submit (no success toast)
+   - Changed from toast visibility check to URL regex assert
+
+5. **Allure TestOps removed:**
+   - Trial expired (~14 days, started Jun 16)
+   - Deleted: `.github/workflows/allure-testops.yml`, `allure-playwright` reporter in `playwright.config.ts`, `allure-playwright` + `allure-commandline` deps in `package.json`, `test:allure` script hollowed
+
+6. **CI Run #31 (28803743562): 63 passed / 5 failed** ✅ (was 0 passed before fixes)
+   - ADAPT-001: demo shows "Dashboard" not "Pending Tasks" → fixed (always "Dashboard" in 5.9)
+   - admin 1.3: extra "Users" sub-tab from previous tab → fixed (`expect.arrayContaining`)
+   - admin 2.2: demo admin username is "a.admin.202.822147" not "Admin" → removed username assert, kept role+status
+   - workspace-notifications 1.1: feature only in 5.9, not on demo → changed `@smoke` → `@local`
+
+7. **Pushed** commit `64a9eb4` to `victor-2026/orangehrm-demo` — awaiting CI green run
+
+### Test Suite Stats (after fixes)
+```
+@local tests: 84 (82 + 2 new Claim KISS)
+@smoke tests: 63 (66 - 3 workspace-notifications → @local)
+Total: ~147
+```
+
+### Key Decisions
+- Workspace Notifications tests are `@local` only — OrangeHRM 5.9 exclusive feature, demo server on older version
+- `expect.arrayContaining` for sub-tab assertion — admin topbar doesn't close previous dropdown in 5.8.1
+- `toBe('Dashboard')` for all environments — both Docker 5.9 and demo show "Dashboard" heading
+
+### Commits
+- `32a4366` — fix: isDocker() ref in fixtures.ts + relative page.goto in myinfo tests
+- `e140d30` — fix: 2 new KISS claim tests + toast→URL assertion + isDocker fixes
+- `aa9d4a3` — feat: remove Allure TestOps (trial expired)
+- `64a9eb4` — fix: CI failures — adaptive heading, admin sub-tabs/username, workspace-notifications @local
 
 ### What Was Done
 1. **OrangeHRM 5.8→5.9 changelog analysis:** 5.9 — first new feature in 2 years. 5.8 and 5.8.1 shipped only security improvements.
