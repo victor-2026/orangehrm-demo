@@ -6,7 +6,7 @@
     "test": "npx playwright test",
     "test:headed": "npx playwright test --headed",
     "test:smoke": "npx playwright test --project=smoke",
-    "test:allure": "npx playwright test && npx allure generate allure-results --clean && npx allure open",
+    "test:allure": "npx playwright test",
     "explore": "node e2e/explore.js",
     "test:k6": "k6 run k6/load-test.js",
     "test:k6:smoke": "k6 run --vus 2 --duration 30s k6/load-test.js",
@@ -25,8 +25,6 @@
   },
   "devDependencies": {
     "@types/node": "^25.9.3",
-    "allure-commandline": "^2.42.0",
-    "allure-playwright": "^3.9.0",
     "typescript": "^6.0.3"
   }
 }

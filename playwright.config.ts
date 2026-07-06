@@ -9,7 +9,6 @@ export default defineConfig({
   workers: 2,
   reporter: [
     ['html'],
-    ['allure-playwright'],
   ],
   use: {
     baseURL: LOCAL ? process.env.BASE_URL || 'http://localhost:8080' : 'https://opensource-demo.orangehrmlive.com',
