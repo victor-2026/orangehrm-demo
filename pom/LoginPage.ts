@@ -9,6 +9,7 @@ export class LoginPage extends BasePage {
 
   async goto() {
     await super.goto('/web/index.php/auth/login');
+    await this.page.waitForSelector('input[name="username"]', { timeout: 30000 });
   }
 
   async fillUsername(username: string) {
