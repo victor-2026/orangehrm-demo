@@ -11,14 +11,7 @@ test.describe('Claim Search and Filter', () => {
 
   test('3.1 Search by Employee Name autocomplete @local @smoke', async ({ page }) => {
     // Type "Alice" in the Employee Name field and select from autocomplete
-    const employeeInput = page.locator('input[placeholder="Type for hints..."]').first();
-    await employeeInput.click();
-    await employeeInput.pressSequentially('Alice', { delay: 100 });
-    const dropdown = page.locator('.oxd-autocomplete-dropdown');
-    await expect(dropdown).toBeVisible({ timeout: 5000 });
-    const option = dropdown.locator('.oxd-autocomplete-option').first();
-    await expect(option).toBeVisible({ timeout: 3000 });
-    await option.click({ force: true });
+    await claimPage.fillEmployee('Alice');
 
     // Click Search
     await claimPage.searchClaims();
@@ -37,7 +30,7 @@ test.describe('Claim Search and Filter', () => {
   test('3.2 Search by Reference Id @local @smoke', async ({ page }) => {
     // Get a known reference ID from the first row (assuming there is at least one row)
     const firstRow = page.locator('.oxd-table-card').first();
-    const referenceId = await firstRow.locator('.oxd-table-cell').first().textContent(); // Reference Id column
+    const referenceId = await firstRow.locator('.oxd-table-cell').nth(1).textContent(); // Reference Id column (index 1 because index 0 is checkbox)
     expect(referenceId).toBeTruthy();
 
     // Type the reference ID in the search field (second input with placeholder "Type for hints...")
@@ -50,7 +43,7 @@ test.describe('Claim Search and Filter', () => {
     // Verify only the matching row is shown
     const rows = page.locator('.oxd-table-card');
     await expect(rows).toHaveCount(1);
-    await expect(rows.first().locator('div:nth-child(1)')).toHaveText(referenceId!.trim());
+    await expect(rows.first().locator('.oxd-table-cell').nth(1)).toHaveText(referenceId!.trim());
   });
 
   test('3.3 Search by Event Name dropdown @local @smoke', async ({ page }) => {
