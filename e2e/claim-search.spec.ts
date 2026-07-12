@@ -6,7 +6,7 @@ test.describe('Claim Search and Filter', () => {
 
   test.beforeEach(async ({ page }) => {
     claimPage = new ClaimPage(page);
-    await claimPage.gotoEmployeeClaims();
+    await claimPage.goto();
   });
 
   test('3.1 Search by Employee Name autocomplete @local @smoke', async ({ page }) => {
@@ -170,7 +170,7 @@ test.describe('Claim Validation Edge Cases', () => {
 
   test.beforeEach(async ({ page }) => {
     claimPage = new ClaimPage(page);
-    await claimPage.gotoEmployeeClaims();
+    await claimPage.goto();
     await claimPage.clickAdd(); // Navigate to Assign Claim form
   });
 
