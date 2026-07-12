@@ -29,7 +29,7 @@ test.describe('Claim Search and Filter', () => {
     expect(count).toBeGreaterThan(0);
     for (let i = 0; i < count; i++) {
       const row = rows.nth(i);
-      const employeeName = row.locator('div:nth-child(2)'); // Employee Name column
+      const employeeName = row.locator('.oxd-table-cell:nth-child(2)'); // Employee Name column
       await expect(employeeName).toContainText('Alice Administrator');
     }
   });
@@ -37,7 +37,7 @@ test.describe('Claim Search and Filter', () => {
   test('3.2 Search by Reference Id @local @smoke', async ({ page }) => {
     // Get a known reference ID from the first row (assuming there is at least one row)
     const firstRow = page.locator('.oxd-table-card').first();
-    const referenceId = await firstRow.locator('div:nth-child(1)').textContent(); // Reference Id column
+    const referenceId = await firstRow.locator('.oxd-table-cell').first().textContent(); // Reference Id column
     expect(referenceId).toBeTruthy();
 
     // Type the reference ID in the search field (second input with placeholder "Type for hints...")
@@ -68,28 +68,28 @@ test.describe('Claim Search and Filter', () => {
     expect(count).toBeGreaterThan(0);
     for (let i = 0; i < count; i++) {
       const row = rows.nth(i);
-      const eventName = row.locator('div:nth-child(3)'); // Event Name column
+      const eventName = row.locator('.oxd-table-cell:nth-child(3)'); // Event Name column
       await expect(eventName).toHaveText('Tech Conference');
     }
   });
 
   test('3.4 Search by Status dropdown @local @smoke', async ({ page }) => {
-    // Select "Paid" from Status dropdown
+    // Select "Initiated" from Status dropdown
     const statusSelect = page.locator('.oxd-input-group').filter({ hasText: 'Status' }).locator('.oxd-select-text-input');
     await statusSelect.click();
-    await page.locator('.oxd-select-option:has-text("Paid")').click();
+    await page.locator('.oxd-select-option:has-text("Initiated")').click();
 
     // Click Search
     await claimPage.searchClaims();
 
-    // Verify table shows only rows with Status = "Paid"
+    // Verify table shows only rows with Status = "Initiated"
     const rows = page.locator('.oxd-table-card');
     const count = await rows.count();
     expect(count).toBeGreaterThan(0);
     for (let i = 0; i < count; i++) {
       const row = rows.nth(i);
-      const status = row.locator('div:nth-child(7)'); // Status column
-      await expect(status).toHaveText('Paid');
+      const status = row.locator('.oxd-table-cell:nth-child(7)'); // Status column
+      await expect(status).toHaveText('Initiated');
     }
   });
 
@@ -118,15 +118,15 @@ test.describe('Claim Search and Filter', () => {
     await claimPage.searchClaims();
 
     // Verify table shows "No Records Found" or empty state
-    const noRecords = page.locator('.oxd-table-body:has-text("No Records Found")');
+    const noRecords = page.locator('.oxd-text--span:has-text("No Records Found")');
     await expect(noRecords).toBeVisible({ timeout: 5000 });
   });
 
   test('3.7 Reset clears all search filters @local @smoke', async ({ page }) => {
-    // Apply a filter (e.g., Status = Paid)
+    // Apply a filter (e.g., Status = Initiated)
     const statusSelect = page.locator('.oxd-input-group').filter({ hasText: 'Status' }).locator('.oxd-select-text-input');
     await statusSelect.click();
-    await page.locator('.oxd-select-option:has-text("Paid")').click();
+    await page.locator('.oxd-select-option:has-text("Initiated")').click();
     await claimPage.searchClaims();
 
     // Verify filter is applied (at least one row)
@@ -185,7 +185,7 @@ test.describe('Claim Validation Edge Cases', () => {
     await claimPage.clickCreate();
 
     // Verify validation error shown under Employee Name
-    const error = page.locator('.oxd-input-group:has-text("Employee Name") .oxd-text--error');
+    const error = page.locator('.oxd-input-group:has-text("Employee Name") .oxd-input-group__message');
     await expect(error).toBeVisible({ timeout: 5000 });
     await expect(error).toContainText('Required');
 
@@ -205,7 +205,7 @@ test.describe('Claim Validation Edge Cases', () => {
     await claimPage.clickCreate();
 
     // Verify validation error shown under Event
-    const error = page.locator('.oxd-input-group:has-text("Event") .oxd-text--error');
+    const error = page.locator('.oxd-input-group:has-text("Event") .oxd-input-group__message');
     await expect(error).toBeVisible({ timeout: 5000 });
     await expect(error).toContainText('Required');
 
@@ -224,7 +224,7 @@ test.describe('Claim Validation Edge Cases', () => {
     await claimPage.clickCreate();
 
     // Verify validation error shown under Currency
-    const error = page.locator('.oxd-input-group:has-text("Currency") .oxd-text--error');
+    const error = page.locator('.oxd-input-group:has-text("Currency") .oxd-input-group__message');
     await expect(error).toBeVisible({ timeout: 5000 });
     await expect(error).toContainText('Required');
 
