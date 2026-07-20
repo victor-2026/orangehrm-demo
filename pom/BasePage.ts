@@ -1,4 +1,5 @@
 import { Page, expect } from '@playwright/test';
+import { CREDENTIALS } from '../helpers/credentials';
 
 export class BasePage {
   constructor(public readonly page: Page) {}
@@ -6,6 +7,16 @@ export class BasePage {
   async goto(path: string, timeout = 30000) {
     const baseURL = process.env.BASE_URL || (process.env.LOCAL === 'true' ? 'http://localhost:8080' : 'https://opensource-demo.orangehrmlive.com');
     await this.page.goto(`${baseURL}${path}`, { timeout, waitUntil: 'domcontentloaded' });
+    await this.reloginIfNeeded(path, timeout);
+  }
+
+  private async reloginIfNeeded(path: string, timeout: number) {
+    if (this.page.url().includes('/auth/login')) {
+      await this.page.fill('input[name="username"]', CREDENTIALS.admin.username);
+      await this.page.fill('input[name="password"]', CREDENTIALS.admin.password);
+      await this.page.click('button[type="submit"]');
+      await this.page.waitForURL(`**${path}`, { timeout });
+    }
   }
 
   protected async waitForLoad(selector: string, timeout = 10000) {
