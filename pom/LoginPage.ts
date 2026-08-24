@@ -1,4 +1,4 @@
-import { Page } from '@playwright/test';
+import { Page, expect } from '@playwright/test';
 import { BasePage } from './BasePage';
 import { CREDENTIALS } from '../helpers/credentials';
 
@@ -9,16 +9,17 @@ export class LoginPage extends BasePage {
 
   async goto() {
     await super.goto('/web/index.php/auth/login');
-    await this.page.waitForSelector('input[name="username"]', { timeout: 30000 });
+    await this.page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
+    await expect(this.page.locator('input[name="username"]')).toBeVisible({ timeout: 30000 });
   }
 
   async fillUsername(username: string) {
-    await this.page.waitForSelector('input[name="username"]', { timeout: 30000 });
+    await expect(this.page.locator('input[name="username"]')).toBeVisible({ timeout: 30000 });
     await this.page.fill('input[name="username"]', username);
   }
 
   async fillPassword(password: string) {
-    await this.page.waitForSelector('input[name="password"]', { timeout: 30000 });
+    await expect(this.page.locator('input[name="password"]')).toBeVisible({ timeout: 30000 });
     await this.page.fill('input[name="password"]', password);
   }
 
