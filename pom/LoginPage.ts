@@ -10,6 +10,12 @@ export class LoginPage extends BasePage {
   async goto() {
     await super.goto('/web/index.php/auth/login');
     await this.page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
+    // Demo site flaky on GH runners — retry with reload if login not rendered
+    for (let i = 0; i < 3; i++) {
+      if (await this.page.locator('input[name="username"]').isVisible().catch(() => false)) break;
+      await this.page.reload({ waitUntil: 'domcontentloaded' }).catch(() => {});
+      await this.page.waitForTimeout(2000);
+    }
     await expect(this.page.locator('input[name="username"]')).toBeVisible({ timeout: 30000 });
   }
 
