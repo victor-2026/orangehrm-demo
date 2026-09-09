@@ -1,0 +1,19 @@
+FROM orangehrm/orangehrm:5.9
+
+RUN curl -L https://jdbc.postgresql.org/download/postgresql-42.7.3.jar \
+    -o /opt/tomcat/lib/postgresql.jar \
+    && chmod 644 /opt/tomcat/lib/postgresql.jar
+
+ENV ORANGEHRM_DATABASE_TYPE=postgresql \
+    ORANGEHRM_DATABASE_HOST=orangehrm-db \
+    ORANGEHRM_DATABASE_PORT=5432 \
+    ORANGEHRM_DATABASE_NAME=orangehrm \
+    ORANGEHRM_DATABASE_USER=orangehrm \
+    ORANGEHRM_DATABASE_PASSWORD=orangehrm_pass \
+    ORANGEHRM_PASSWORD=Orangehrm@2026 \
+    ORANGEHRM_USERNAME=admin
+
+EXPOSE 80
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost:80/web/index.php/dashboard || exit 1
+CMD ["catalina.sh", "run"]

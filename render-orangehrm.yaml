@@ -1,0 +1,40 @@
+services:
+  - type: postgres
+    name: orangehrm-db
+    database: orangehrm
+    user: orangehrm
+    password: orangehrm_pass
+    version: 16
+    plan: free
+    ipAssignmentPolicy: dyno
+    allowConnectionFromPublicIps: true
+
+  - type: web
+    name: orangehrm
+    runtime: docker
+    repo: https://github.com/victor-2026/orangehrm-demo
+    branch: main
+    dockerfilePath: Dockerfile.render
+    plan: free
+    envVars:
+      - key: ORANGEHRM_DATABASE_HOST
+        value: orangehrm-db
+      - key: ORANGEHRM_DATABASE_PORT
+        value: "5432"
+      - key: ORANGEHRM_DATABASE_NAME
+        value: orangehrm
+      - key: ORANGEHRM_DATABASE_USER
+        value: orangehrm
+      - key: ORANGEHRM_DATABASE_PASSWORD
+        sync: false
+      - key: ORANGEHRM_PASSWORD
+        value: Orangehrm@2026
+      - key: ORANGEHRM_USERNAME
+        value: admin
+      - key: PORT
+        value: "80"
+    healthCheckPath: /web/index.php/dashboard
+    autoDeploy: true
+    envVarsFrom:
+      - type: encrypted
+        key: ORANGEHRM_DATABASE_PASSWORD
