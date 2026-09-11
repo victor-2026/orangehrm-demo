@@ -2,6 +2,9 @@ import { defineConfig } from '@playwright/test';
 
 const LOCAL = process.env.LOCAL === 'true';
 
+// Self-hosted stable target (Render free + Aiven MySQL). Public demo retired.
+export const RENDER_URL = 'https://orangehrm-app.onrender.com';
+
 export default defineConfig({
   testDir: './e2e',
   timeout: 60000,
@@ -11,7 +14,7 @@ export default defineConfig({
     ['html'],
   ],
   use: {
-    baseURL: LOCAL ? process.env.BASE_URL || 'http://localhost:8080' : 'https://opensource-demo.orangehrmlive.com',
+    baseURL: LOCAL ? process.env.BASE_URL || 'http://localhost:8080' : process.env.BASE_URL || RENDER_URL,
     headless: true,
     screenshot: 'only-on-failure',
   },

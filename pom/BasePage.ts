@@ -1,11 +1,12 @@
 import { Page, expect } from '@playwright/test';
 import { CREDENTIALS } from '../helpers/credentials';
+import { RENDER_URL } from '../playwright.config';
 
 export class BasePage {
   constructor(public readonly page: Page) {}
 
   async goto(path: string, timeout = 30000) {
-    const baseURL = process.env.BASE_URL || (process.env.LOCAL === 'true' ? 'http://localhost:8080' : 'https://opensource-demo.orangehrmlive.com');
+    const baseURL = process.env.BASE_URL || (process.env.LOCAL === 'true' ? 'http://localhost:8080' : RENDER_URL);
     await this.page.goto(`${baseURL}${path}`, { timeout, waitUntil: 'domcontentloaded' });
     await this.reloginIfNeeded(path, timeout);
   }

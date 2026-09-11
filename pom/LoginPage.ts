@@ -1,6 +1,7 @@
 import { Page, expect } from '@playwright/test';
 import { BasePage } from './BasePage';
 import { CREDENTIALS } from '../helpers/credentials';
+import { RENDER_URL } from '../playwright.config';
 
 export class LoginPage extends BasePage {
   constructor(page: Page) {
@@ -8,7 +9,10 @@ export class LoginPage extends BasePage {
   }
 
   async goto() {
-    await super.goto('/web/index.php/auth/login');
+    // NOTE: bypass super.goto() on purpose — BasePage auto-logs-in on the
+    // login page (reloginIfNeeded), which races with the form wait below.
+    const baseURL = process.env.BASE_URL || (process.env.LOCAL === 'true' ? 'http://localhost:8080' : RENDER_URL);
+    await this.page.goto(`${baseURL}/web/index.php/auth/login`, { timeout: 60000, waitUntil: 'domcontentloaded' });
     await this.page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
     // Demo site flaky on GH runners — retry with reload if login not rendered
     for (let i = 0; i < 3; i++) {
