@@ -29,7 +29,7 @@ export default defineConfig({
   projects: [
     {
       name: 'setup',
-      testMatch: 'seed.spec.ts',
+      testMatch: ['seed.spec.ts', 'seed-data.spec.ts'],
     },
     {
       name: 'smoke',
