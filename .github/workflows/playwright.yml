@@ -13,7 +13,7 @@ jobs:
   test:
     name: E2E + Python Tests
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
 
@@ -30,10 +30,12 @@ jobs:
         continue-on-error: true
         run: |
           curl --retry 3 --retry-delay 5 --max-time 10 \
-            "${{ vars.BASE_URL || 'https://opensource-demo.orangehrmlive.com' }}" \
-            -o /dev/null -w "%{http_code}" -s || echo "Health check failed - demo server likely down"
+            "${{ vars.BASE_URL || 'https://orangehrm-app.onrender.com' }}" \
+            -o /dev/null -w "%{http_code}" -s || echo "Health check failed - Render service likely asleep"
 
       - name: Run Playwright smoke tests
+        env:
+          BASE_URL: ${{ vars.BASE_URL }}
         run: npx playwright test --project=smoke
 
       - name: Setup Python
@@ -59,7 +61,7 @@ jobs:
     name: Full Suite (TypeScript)
     needs: test
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -69,6 +71,8 @@ jobs:
       - run: npm ci
       - run: npx playwright install --with-deps chromium
       - run: npx playwright test --project=chromium
+        env:
+          BASE_URL: ${{ vars.BASE_URL }}
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
