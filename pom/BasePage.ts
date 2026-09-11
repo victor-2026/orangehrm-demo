@@ -13,10 +13,15 @@ export class BasePage {
 
   private async reloginIfNeeded(path: string, timeout: number) {
     if (this.page.url().includes('/auth/login')) {
+      const baseURL = process.env.BASE_URL || (process.env.LOCAL === 'true' ? 'http://localhost:8080' : RENDER_URL);
       await this.page.fill('input[name="username"]', CREDENTIALS.admin.username);
       await this.page.fill('input[name="password"]', CREDENTIALS.admin.password);
       await this.page.click('button[type="submit"]');
-      await this.page.waitForURL(`**${path}`, { timeout });
+      // App lands on dashboard after login, not the target page — go there explicitly
+      await this.page.waitForURL(/dashboard|auth\/login/, { timeout }).catch(() => {});
+      if (!this.page.url().includes(path)) {
+        await this.page.goto(`${baseURL}${path}`, { timeout, waitUntil: 'domcontentloaded' });
+      }
     }
   }
 
