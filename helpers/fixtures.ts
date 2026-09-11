@@ -1,4 +1,5 @@
 import { test as base, expect } from '@playwright/test';
+import { RENDER_URL } from '../playwright.config';
 import { LoginPage } from '../pom/LoginPage';
 import { DashboardPage } from '../pom/DashboardPage';
 import { AdminPage } from '../pom/AdminPage';
@@ -152,7 +153,11 @@ export const test = base.extend<Fixtures>({
     await use(getIsDockerEnv());
   },
   baseURL: async ({}, use) => {
-    await use(process.env.BASE_URL || '');
+    // Keep in sync with playwright.config.ts default (Render, LOCAL untouched)
+    await use(
+      process.env.BASE_URL ||
+        (process.env.LOCAL === 'true' ? 'http://localhost:8080' : RENDER_URL)
+    );
   },
 });
 

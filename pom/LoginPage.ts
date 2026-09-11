@@ -14,13 +14,25 @@ export class LoginPage extends BasePage {
     const baseURL = process.env.BASE_URL || (process.env.LOCAL === 'true' ? 'http://localhost:8080' : RENDER_URL);
     await this.page.goto(`${baseURL}/web/index.php/auth/login`, { timeout: 60000, waitUntil: 'domcontentloaded' });
     await this.page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
-    // Demo site flaky on GH runners — retry with reload if login not rendered
+    // Slow free-tier Render + storageState sessions may already be valid
+    // (app redirects straight to dashboard) — don't force the login form.
     for (let i = 0; i < 3; i++) {
-      if (await this.page.locator('input[name="username"]').isVisible().catch(() => false)) break;
+      if (await this.isLoginFormVisible()) break;
+      if (await this.isLoggedIn()) return;
       await this.page.reload({ waitUntil: 'domcontentloaded' }).catch(() => {});
       await this.page.waitForTimeout(2000);
     }
+    if (await this.isLoggedIn()) return;
     await expect(this.page.locator('input[name="username"]')).toBeVisible({ timeout: 30000 });
+  }
+
+  async isLoginFormVisible(): Promise<boolean> {
+    return await this.page.locator('input[name="username"]').isVisible().catch(() => false);
+  }
+
+  async isLoggedIn(): Promise<boolean> {
+    if (!this.page.url().includes('/auth/login')) return true;
+    return await this.page.locator('.oxd-topbar-header-title').isVisible().catch(() => false);
   }
 
   async fillUsername(username: string) {
