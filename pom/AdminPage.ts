@@ -449,8 +449,10 @@ export class AdminPage extends BasePage {
 
   async viewFirstUser() {
     const firstRow = this.page.locator('.oxd-table-body .oxd-table-row').first();
-    await firstRow.click();
-    await this.waitForLoad('.oxd-form');
+    await firstRow.waitFor({ state: 'visible', timeout: 30000 });
+    // User form opens via the pencil button in Actions (cell clicks don't navigate)
+    await firstRow.locator('i.bi-pencil-fill').click({ timeout: 30000 });
+    await this.page.waitForURL('**/admin/saveSystemUser**', { timeout: 30000 });
   }
 
   async isUserFormVisible() {

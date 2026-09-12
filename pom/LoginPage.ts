@@ -53,7 +53,8 @@ export class LoginPage extends BasePage {
     await this.fillUsername(CREDENTIALS.admin.username);
     await this.fillPassword(CREDENTIALS.admin.password);
     await this.clickLogin();
-    await this.waitForLoad('.oxd-topbar-header-title', 30000);
+    // auth/validate can stall on slow free-tier Render under parallel load
+    await this.waitForLoad('.oxd-topbar-header-title', 60000);
   }
 
   async getErrorMessage() {

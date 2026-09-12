@@ -9,6 +9,7 @@ test.describe('Claim Search and Filter', () => {
   test.beforeEach(async ({ page }) => {
     claimPage = new ClaimPage(page);
     await claimPage.goto();
+    await claimPage.waitForTable();
   });
 
   test('3.1 Search by Employee Name autocomplete @local @smoke', async ({ page }) => {
@@ -17,11 +18,12 @@ test.describe('Claim Search and Filter', () => {
 
     // Click Search
     await claimPage.searchClaims();
+    await claimPage.waitForTable();
 
     // Verify table filters to show only Alice's claims
     const rows = page.locator('.oxd-table-card');
+    await expect.poll(async () => rows.count(), { timeout: 30000 }).toBeGreaterThan(0);
     const count = await rows.count();
-    expect(count).toBeGreaterThan(0);
     for (let i = 0; i < count; i++) {
       const row = rows.nth(i);
       const employeeName = row.locator('.oxd-table-cell:nth-child(2)'); // Employee Name column
@@ -31,8 +33,10 @@ test.describe('Claim Search and Filter', () => {
 
   test('3.2 Search by Reference Id @local @smoke', async ({ page }) => {
     // Get a known reference ID from the first row (assuming there is at least one row)
+    // NOTE: checkbox is not an .oxd-table-cell, so index 0 = Reference Id
+    await expect.poll(async () => page.locator('.oxd-table-card').count(), { timeout: 30000 }).toBeGreaterThan(0);
     const firstRow = page.locator('.oxd-table-card').first();
-    const referenceId = await firstRow.locator('.oxd-table-cell').nth(1).textContent(); // Reference Id column (index 1 because index 0 is checkbox)
+    const referenceId = await firstRow.locator('.oxd-table-cell').nth(0).textContent(); // Reference Id column
     expect(referenceId).toBeTruthy();
 
     // Type the reference ID in the search field (second input with placeholder "Type for hints...")
@@ -44,8 +48,9 @@ test.describe('Claim Search and Filter', () => {
 
     // Verify only the matching row is shown
     const rows = page.locator('.oxd-table-card');
-    await expect(rows).toHaveCount(1);
-    await expect(rows.first().locator('.oxd-table-cell').nth(1)).toHaveText(referenceId!.trim());
+    await claimPage.waitForTable();
+    await expect(rows).toHaveCount(1, { timeout: 30000 });
+    await expect(rows.first().locator('.oxd-table-cell').nth(0)).toHaveText(referenceId!.trim());
   });
 
   test('3.3 Search by Event Name dropdown @local @smoke', async ({ page }) => {
@@ -56,11 +61,12 @@ test.describe('Claim Search and Filter', () => {
 
     // Click Search
     await claimPage.searchClaims();
+    await claimPage.waitForTable();
 
     // Verify table shows only rows with Event Name = "Tech Conference"
     const rows = page.locator('.oxd-table-card');
+    await expect.poll(async () => rows.count(), { timeout: 30000 }).toBeGreaterThan(0);
     const count = await rows.count();
-    expect(count).toBeGreaterThan(0);
     for (let i = 0; i < count; i++) {
       const row = rows.nth(i);
       const eventName = row.locator('.oxd-table-cell:nth-child(3)'); // Event Name column
@@ -76,11 +82,12 @@ test.describe('Claim Search and Filter', () => {
 
     // Click Search
     await claimPage.searchClaims();
+    await claimPage.waitForTable();
 
     // Verify table shows only rows with Status = "Initiated"
     const rows = page.locator('.oxd-table-card');
+    await expect.poll(async () => rows.count(), { timeout: 30000 }).toBeGreaterThan(0);
     const count = await rows.count();
-    expect(count).toBeGreaterThan(0);
     for (let i = 0; i < count; i++) {
       const row = rows.nth(i);
       const status = row.locator('.oxd-table-cell:nth-child(7)'); // Status column
@@ -113,8 +120,9 @@ test.describe('Claim Search and Filter', () => {
     await claimPage.searchClaims();
 
     // Verify table shows "No Records Found" or empty state
+    await claimPage.waitForTable();
     const noRecords = page.locator('.oxd-text--span:has-text("No Records Found")');
-    await expect(noRecords).toBeVisible({ timeout: 5000 });
+    await expect(noRecords).toBeVisible({ timeout: 30000 });
   });
 
   test('3.7 Reset clears all search filters @local @smoke', async ({ page }) => {
@@ -126,8 +134,9 @@ test.describe('Claim Search and Filter', () => {
 
     // Verify filter is applied (at least one row)
     let rows = page.locator('.oxd-table-card');
+    await claimPage.waitForTable();
+    await expect.poll(async () => rows.count(), { timeout: 30000 }).toBeGreaterThan(0);
     let count = await rows.count();
-    expect(count).toBeGreaterThan(0);
 
     // Click Reset
     await claimPage.resetSearch();
@@ -139,8 +148,9 @@ test.describe('Claim Search and Filter', () => {
 
     // Table should show all records (more than the filtered count)
     rows = page.locator('.oxd-table-card');
+    await claimPage.waitForTable();
+    await expect.poll(async () => rows.count(), { timeout: 30000 }).toBeGreaterThan(0); // We don't know the exact total, but it should be more than the filtered count
     count = await rows.count();
-    expect(count).toBeGreaterThan(0); // We don't know the exact total, but it should be more than the filtered count
   });
 
   test('3.8 Search by Include dropdown @local @smoke', async ({ page }) => {
@@ -155,7 +165,15 @@ test.describe('Claim Search and Filter', () => {
     // Verify table filters appropriately (may show no results if no past employees have claims)
     const rows = page.locator('.oxd-table-card');
     const count = await rows.count();
-    // We don't assert on count because it might be zero, but we can check that the search completed
-    await expect(page.locator('.oxd-table-body')).toBeVisible();
+    // We don't assert on count because it might be zero, but we can check that the search completed:
+    // either rows render or the empty state shows (body stays hidden when empty)
+    await claimPage.waitForTable();
+    const completed =
+      (await page.locator('.oxd-table-card').first().isVisible().catch(() => false)) ||
+      (await page
+        .locator('.oxd-text--span:has-text("No Records Found")')
+        .isVisible()
+        .catch(() => false));
+    expect(completed).toBe(true);
   });
 });

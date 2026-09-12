@@ -20,7 +20,9 @@ export class ClaimPage extends BasePage {
   }
 
   async clickAdd() {
-    await this.page.click('button:has-text("Assign Claim")');
+    // List page loads slowly on free-tier Render — wait for table + button
+    await this.waitForTable();
+    await this.page.locator('button:has-text("Assign Claim")').click({ timeout: 30000 });
     await this.waitForLoad('.oxd-form');
   }
 
@@ -88,8 +90,19 @@ export class ClaimPage extends BasePage {
     await this.page.locator('button:has-text("Search")').click();
     await this.page.waitForResponse(
       r => r.url().includes('/api/v2/claim') && r.status() === 200,
-      { timeout: 10000 }
+      { timeout: 30000 }
     ).catch(() => {});
+  }
+
+  /** Wait until the results table finished loading (rows or empty state). */
+  async waitForTable(timeout = 30000) {
+    await Promise.race([
+      this.page.locator('.oxd-table-card').first().waitFor({ timeout }).catch(() => {}),
+      this.page
+        .locator('.oxd-text--span:has-text("No Records Found")')
+        .waitFor({ timeout })
+        .catch(() => {}),
+    ]);
   }
 
   async resetSearch() {

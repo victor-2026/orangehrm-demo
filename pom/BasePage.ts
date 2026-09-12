@@ -17,8 +17,10 @@ export class BasePage {
       await this.page.fill('input[name="username"]', CREDENTIALS.admin.username);
       await this.page.fill('input[name="password"]', CREDENTIALS.admin.password);
       await this.page.click('button[type="submit"]');
-      // App lands on dashboard after login, not the target page — go there explicitly
-      await this.page.waitForURL(/dashboard|auth\/login/, { timeout }).catch(() => {});
+      // App lands on dashboard after login, not the target page:
+      // wait for login to complete first, then go to target explicitly
+      await this.page.waitForURL('**/dashboard/**', { timeout }).catch(() => {});
+      if (this.page.url().includes('/auth/login')) return; // login failed; asserts downstream will report
       if (!this.page.url().includes(path)) {
         await this.page.goto(`${baseURL}${path}`, { timeout, waitUntil: 'domcontentloaded' });
       }
