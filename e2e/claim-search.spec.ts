@@ -1,7 +1,9 @@
 import { test, expect } from '@playwright/test';
 import { ClaimPage } from '../pom/ClaimPage';
 
-test.describe.configure({ mode: 'parallel', timeout: 180000 });
+// NOTE: no mode:'parallel' — all tests share one PHP session (admin.json)
+// and PHP serializes same-session requests; in-file parallel wedges free-tier Render.
+test.describe.configure({ timeout: 180000 });
 
 test.describe('Claim Search and Filter', () => {
   let claimPage: ClaimPage;

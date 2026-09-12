@@ -1,7 +1,9 @@
 import { test, expect } from '@playwright/test';
 import { ClaimPage } from '../pom/ClaimPage';
 
-test.describe.configure({ mode: 'parallel' });
+// NOTE: no mode:'parallel' — shared PHP session serializes same-session
+// requests; in-file parallel wedges free-tier Render (see claim-search).
+test.describe.configure({ timeout: 180000 });
 
 test.describe('Claim Validation Edge Cases', () => {
   let claimPage: ClaimPage;

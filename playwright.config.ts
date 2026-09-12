@@ -9,7 +9,9 @@ export default defineConfig({
   testDir: './e2e',
   timeout: 60000,
   retries: 2,
-  workers: 2,
+  // Free-tier Render wedges under parallel same-session load (PHP session lock
+  // + throttled CPU): serial on CI, 2 workers locally.
+  workers: process.env.CI ? 1 : 2,
   reporter: [
     ['html'],
   ],
