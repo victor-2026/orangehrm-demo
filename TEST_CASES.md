@@ -5,6 +5,7 @@
 - 🟡 High — important for quality
 - 🟢 Medium — nice to have
 - ✅ (LOCAL) — passes on local Docker instance only
+- ✅ (no mark) — passes in Render CI (public demo retired 2026-09-11)
 
 ---
 
@@ -16,7 +17,7 @@
 | AUTH-002 | Login with invalid password → error message "Invalid credentials" | 🔴 | E2E | ✅ |
 | AUTH-003 | Login with empty credentials → stays on login page | 🔴 | E2E | ✅ |
 | AUTH-004 | Login with non-existent user → error message | 🟡 | E2E | ❌ |
-| AUTH-005 | Logout → redirect to login page | 🔴 | E2E | ❌ |
+| AUTH-005 | Logout → redirect to login page | 🔴 | E2E | ✅ |
 | AUTH-006 | Session expires → redirect to login | 🟡 | E2E | ❌ (not on demo) |
 | AUTH-007 | Login API: POST /auth/login returns token | 🔴 | API | ⚠️ N/A (no API) |
 | AUTH-008 | Login API: invalid credentials returns 401 | 🔴 | API | ⚠️ N/A (no API) |
@@ -120,7 +121,7 @@
 | ID | Test Case | Priority | Type | Status |
 |----|-----------|:--------:|------|:------:|
 | DIR-001 | Directory page loads | 🟡 | E2E | ✅ |
-| DIR-002 | Search directory | 🟢 | E2E | ❌ |
+| DIR-002 | Search directory | 🟢 | E2E | ✅ |
 
 ---
 
@@ -139,7 +140,7 @@
 | ID | Test Case | Priority | Type | Status |
 |----|-----------|:--------:|------|:------:|
 | CLAIM-001 | Claim page loads | 🟡 | E2E | ✅ |
-| CLAIM-002 | Assign claim | 🟢 | E2E | ❌ |
+| CLAIM-002 | Assign claim | 🟢 | E2E | ✅ (LOCAL) |
 
 ---
 
@@ -149,7 +150,7 @@
 |----|-----------|:--------:|------|:------:|
 | BUZZ-001 | Buzz page loads | 🟡 | E2E | ✅ |
 | BUZZ-002 | Create post | 🟡 | E2E | ✅ (LOCAL) |
-| BUZZ-003 | Like post | 🟢 | E2E | ❌ |
+| BUZZ-003 | Like post | 🟢 | E2E | ✅ |
 
 ---
 
@@ -157,7 +158,7 @@
 
 | Module | Total | ✅ Done | ❌ Todo | Coverage |
 |--------|:-----:|:-------:|:-------:|:--------:|
-| Auth | 8 | 3 | 5 | 38% |
+| Auth | 8 | 4 | 4 | 50% |
 | Dashboard | 4 | 4 | 0 | 100% |
 | Admin | 7 | 3 | 4 | 43% |
 | PIM | 7 | 5 | 2 | 71% |
@@ -166,8 +167,8 @@
 | Recruitment | 3 | 3 | 0 | 100% |
 | My Info | 3 | 2 | 1 | 67% |
 | Performance | 2 | 1 | 1 | 50% |
-| Directory | 2 | 1 | 1 | 50% |
+| Directory | 2 | 2 | 0 | 100% |
 | Maintenance | 3 | 2 | 1 | 67% |
-| Claim | 2 | 1 | 1 | 50% |
-| Buzz | 3 | 2 | 1 | 67% |
-| **TOTAL** | **52** | **34** | **18** | **65%** |
+| Claim | 2 | 2 | 0 | 100% |
+| Buzz | 3 | 3 | 0 | 100% |
+| **TOTAL** | **52** | **38** | **14** | **73%** |
