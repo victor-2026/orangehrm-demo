@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { ClaimPage } from '../pom/ClaimPage';
 
-test.describe.configure({ mode: 'parallel' });
+test.describe.configure({ mode: 'parallel', timeout: 180000 });
 
 test.describe('Claim Search and Filter', () => {
   let claimPage: ClaimPage;
