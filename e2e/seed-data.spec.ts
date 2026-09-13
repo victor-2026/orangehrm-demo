@@ -63,4 +63,50 @@ setup('seed prerequisite data via API', async ({ page }) => {
     );
     expect(res.status()).toBe(200);
   }
+
+  // 4. User account for Alice (leave flow logs in as employee)
+  const users = await apiList(page, '/web/index.php/api/v2/admin/users?limit=100');
+  if (!users.some((u: any) => u.userName === 'alice')) {
+    const res = await page.request.post('/web/index.php/api/v2/admin/users', {
+      data: {
+        username: 'alice',
+        password: 'AlicePass123!',
+        userRoleId: 2,
+        empNumber: alice.empNumber,
+        status: true,
+      },
+    });
+    expect(res.status()).toBe(200);
+  }
+
+  // 5. Leave chain for Alice: period + Annual type + entitlement + one pending request
+  await page.request.put('/web/index.php/api/v2/leave/leave-period', {
+    data: { startMonth: 1, startDay: 1 },
+  });
+  const types = await apiList(page, '/web/index.php/api/v2/leave/leave-types?limit=100');
+  let leaveType = types.find((t: any) => t.name === 'Annual');
+  if (!leaveType) {
+    const res = await page.request.post('/web/index.php/api/v2/leave/leave-types', {
+      data: { name: 'Annual', situational: false },
+    });
+    expect(res.status()).toBe(200);
+    leaveType = (await res.json()).data;
+  }
+  const entRes = await page.request.get(
+    `/web/index.php/api/v2/leave/employees/${alice.empNumber}/leave-entitlements?leaveTypeId=${leaveType.id}`
+  );
+  expect(entRes.status()).toBe(200);
+  const balance = (await entRes.json()).data?.entitlement?.current ?? 0;
+  if (balance < 5) {
+    const res = await page.request.post('/web/index.php/api/v2/leave/leave-entitlements', {
+      data: {
+        empNumber: alice.empNumber,
+        leaveTypeId: leaveType.id,
+        fromDate: '2026-01-01',
+        toDate: '2026-12-31',
+        entitlement: 10,
+      },
+    });
+    expect(res.status()).toBe(200);
+  }
 });

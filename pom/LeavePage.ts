@@ -63,7 +63,12 @@ export class LeavePage extends BasePage {
     await this.waitForLoad('.oxd-form');
   }
 
-  async applyLeave(leaveType: string, fromDate: string, toDate: string, comment?: string) {
+  async applyLeave(
+    leaveType: string,
+    fromDate: string,
+    toDate: string,
+    comment?: string,
+  ) {
     await this.login();
     await super.goto('/web/index.php/leave/applyLeave');
     await this.waitForLoad('.oxd-form');

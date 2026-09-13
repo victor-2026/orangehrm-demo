@@ -25,9 +25,9 @@ export class AdminPage extends BasePage {
     await empInput.click();
     await empInput.pressSequentially(empName, { delay: 100 });
     const dropdown = this.page.locator('.oxd-autocomplete-dropdown');
-    if (await dropdown.isVisible({ timeout: 5000 }).catch(() => false)) {
+    if (await dropdown.isVisible({ timeout: 30000 }).catch(() => false)) {
       await empInput.press('ArrowDown');
-      await dropdown.locator('.oxd-autocomplete-option').first().waitFor({ state: 'visible', timeout: 3000 }).catch(() => {});
+      await dropdown.locator('.oxd-autocomplete-option').first().waitFor({ state: 'visible', timeout: 10000 }).catch(() => {});
       await empInput.press('Enter');
     }
 

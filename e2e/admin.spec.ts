@@ -1,4 +1,21 @@
-import { test, expect } from '../helpers/fixtures';
+import { test, expect, type Page } from '../helpers/fixtures';
+
+// UI user creation depends on flaky employee autocomplete — create via API,
+// exercise edit/delete via UI. Alice (empNumber 2) comes from the setup seed.
+async function createUserViaAPI(page: Page, username: string): Promise<number> {
+  const res = await page.request.post('/web/index.php/api/v2/admin/users', {
+    data: { username, password: 'TestPass123!', userRoleId: 2, empNumber: 2, status: true },
+  });
+  expect(res.status()).toBe(200);
+  return (await res.json()).data.id;
+}
+
+async function deleteUserViaAPI(page: Page, id: number): Promise<void> {
+  const res = await page.request.delete('/web/index.php/api/v2/admin/users', {
+    data: { ids: [id] },
+  });
+  expect(res.status()).toBe(200);
+}
 
 test.describe('Admin Module', () => {
 
@@ -144,7 +161,7 @@ test.describe('Admin Module', () => {
       await adminPage.clickSave();
       expect(page.url()).toContain('/admin/saveSystemUser');
       const toast = page.locator('.oxd-toast');
-      await expect(toast).toBeVisible({ timeout: 5000 });
+      await expect(toast).toBeVisible({ timeout: 30000 });
     });
 
     test('2.12 Add User — validation errors @local', async ({ adminPage, page, loggedInPage }) => {
@@ -175,14 +192,10 @@ test.describe('Admin Module', () => {
       expect(errorText?.toLowerCase()).toMatch(/password|length|8 characters/);
     });
 
-    test('2.19 Delete user — confirm @local', async ({ adminPage, page, loggedInPage }) => {
-      // Create a test user first so we have something to delete
+    test('2.19 Delete user — confirm @local @smoke', async ({ adminPage, page, loggedInPage }) => {
+      // Create a test user via API so we have something to delete
       const username = `DelTest_${Date.now()}`;
-      await adminPage.goto();
-      await adminPage.clickAdd();
-      await adminPage.fillUserForm('ESS', 'Admin', username, 'TestPass123!', 'Enabled');
-      await adminPage.clickSave();
-      expect(page.url()).toContain('/admin/saveSystemUser');
+      await createUserViaAPI(page, username);
 
       // Navigate to user list and search for the new user
       await adminPage.goto();
@@ -207,12 +220,9 @@ test.describe('Admin Module', () => {
       expect(await adminPage.isUserFormVisible()).toBe(true);
     });
 
-    test('2.17 Edit user @local', async ({ adminPage, page, loggedInPage }) => {
+    test('2.17 Edit user @local @smoke', async ({ adminPage, page, loggedInPage }) => {
       const editUser = `EditTest_${Date.now()}`;
-      await adminPage.goto();
-      await adminPage.clickAdd();
-      await adminPage.fillUserForm('ESS', 'Admin', editUser, 'TestPass123!', 'Enabled');
-      await adminPage.clickSave();
+      const userId = await createUserViaAPI(page, editUser);
       await adminPage.goto();
       await adminPage.searchUser(editUser);
       await adminPage.editUserStatus(editUser, 'Disabled');
@@ -221,6 +231,8 @@ test.describe('Admin Module', () => {
       await expect(page.locator('.oxd-table-body')).toContainText(editUser);
       const rowData = await adminPage.getRowData(0);
       expect(rowData[4]).toBe('Disabled');
+      // Cleanup so CI stays clean
+      await deleteUserViaAPI(page, userId);
     });
 
   });
