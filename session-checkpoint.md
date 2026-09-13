@@ -1,663 +1,178 @@
 # Session Checkpoint - OrangeHRM
 
-**Date:** 2026-07-06
-**Session:** Session 71 — CI fix: 5 multi-module failures + 2 new Claim KISS tests + Allure TestOps removal
-**Status:** ACTIVE
+## LIVE Instance (source of truth, 2026-09-11)
+- App: `https://orangehrm-app.onrender.com` — OrangeHRM 5.9, all migrations, login `Admin` / `Orangehrm@2026`
+- Web: Render free `orangehrm-app` (Apache+PHP only, image `d63824c`) ← `victor-render2026/orangehrm-render` (SSH `~/.ssh/id_ed25519`)
+- DB: Aiven free MySQL `mysql-339a7caa-orangehrm-db.a.aivencloud.com:23149`, db `orangehrm`, user `avnadmin` (pass in Render dashboard only); allowlist open; `sql_require_primary_key=OFF`
+- Redeploy-safe: `start.sh` restores `lib/confs/Conf.php` + `key.ohrm` from env (`OHRM_DB_*` in Blueprint, `OHRM_DB_PASS` dashboard-only via `sync: false`); Apache runs as www-data (644/chown!)
+- CI: `vars.BASE_URL` = Render URL; suite serial on CI (`workers: 1`), 60m job caps; API seed (`seed-data.spec.ts`) creates Alice Administrator + Tech Conference + claim
 
-## Session 71 (2026-07-06) — CI fix: isDocker refactor, myinfo URLs, Allure removal + 2 Claim tests
+## Current State (2026-09-12)
+- Suite hardening commits pushed (`9eec36f`, `6fa6cc8`, `9d17599`, `04ed8d1`, `67874d9`, `8f752c1`, `65011f6`); CI serial run in flight
+- Known slow-suite mechanics: shared PHP session serializes same-session requests → no in-file `parallel`, generous waits (`waitForTable`, `expect.poll`, 30–60s), describe timeouts 180s on slow files
+- Open: CI green confirmation; Stryker scope decision (783 mutants ≈ 1–2h); AGENTS.md Pi-section uncommitted (чужое окно? не трогать без спроса)
 
-### What Was Done
-1. **2 new KISS Claim tests** (`e2e/claim.spec.ts`):
-   - Submit claim via self-service (checks URL redirect to detail page)
-   - Admin views assigned claim in Employee Claims (clicks View Details)
-   - **12/12 Claim tests pass locally** ✅
+## Standing Notes
+- Env: `export PATH="/usr/local/bin:$PATH"` + `source ~/.nvm/nvm.sh`; node/docker/llhttp in `/usr/local/bin` (`libllhttp.9.3.dylib` → `9.4.1` symlink)
+- No-Go: no demo source edits, no secrets in code (Aiven pass lives in Render dashboard, mirrored here only), CI/CD changes need human OK
+- `helpers/` + `playwright.config.ts` + `package.json` + `AGENTS.md` = ask-boundary; `e2e/` + `pom/` + `k6/` = free edit
+- Local docker (`LOCAL=true`, `:8080`, MariaDB 10.11.4) is post-mutation — NOT a reference dataset; seed builds data via API on the target itself
+- Positions-CV-CL checkpoints = чужое окно, не трогать
 
-2. **`isDocker()` → `getIsDockerEnv()` refactor** (3 files):
-   - `adaptive.spec.ts` — import + usage fixed (was `ReferenceError`)
-   - `maintenance.spec.ts` — same fix
-   - `helpers/fixtures.ts` — 4 places: conditional fixture value, export name, `isDocker` var → `getIsDockerEnv()`, `adaptiveExpect` guard
+## Backlog (from Jul, still open)
+1. `scripts/regression-advice.py` needs `GROQ_API_KEY` in GitHub Secrets
+2. DB migration detection + rollback checks; dependency bump scan; config/env deploy verify; coverage mapping; CI Check Run; secret leak detector
 
-3. **`myinfo.spec.ts` — relative URL fix:**
-   - 5 `page.goto('/web/index.php/...')` replaced with `myInfoPage.goto()` + `clickSubTab()`
-   - Root cause: Playwright resolves `baseURL` at config time, but `@local` project has different `baseURL` than `@smoke` — relative paths broke in CI
-
-4. **`claim.spec.ts` — toast → URL assertion:**
-   - OracleHRM 5.9 redirects to claim detail page on submit (no success toast)
-   - Changed from toast visibility check to URL regex assert
-
-5. **Allure TestOps removed:**
-   - Trial expired (~14 days, started Jun 16)
-   - Deleted: `.github/workflows/allure-testops.yml`, `allure-playwright` reporter in `playwright.config.ts`, `allure-playwright` + `allure-commandline` deps in `package.json`, `test:allure` script hollowed
-
-6. **CI Run #31 (28803743562): 63 passed / 5 failed** ✅ (was 0 passed before fixes)
-   - ADAPT-001: demo shows "Dashboard" not "Pending Tasks" → fixed (always "Dashboard" in 5.9)
-   - admin 1.3: extra "Users" sub-tab from previous tab → fixed (`expect.arrayContaining`)
-   - admin 2.2: demo admin username is "a.admin.202.822147" not "Admin" → removed username assert, kept role+status
-   - workspace-notifications 1.1: feature only in 5.9, not on demo → changed `@smoke` → `@local`
-
-7. **Pushed** commit `64a9eb4` to `victor-2026/orangehrm-demo` — awaiting CI green run
-
-### Test Suite Stats (after fixes)
-```
-@local tests: 84 (82 + 2 new Claim KISS)
-@smoke tests: 63 (66 - 3 workspace-notifications → @local)
-Total: ~147
-```
-
-### Key Decisions
-- Workspace Notifications tests are `@local` only — OrangeHRM 5.9 exclusive feature, demo server on older version
-- `expect.arrayContaining` for sub-tab assertion — admin topbar doesn't close previous dropdown in 5.8.1
-- `toBe('Dashboard')` for all environments — both Docker 5.9 and demo show "Dashboard" heading
-
-### Commits
-- `32a4366` — fix: isDocker() ref in fixtures.ts + relative page.goto in myinfo tests
-- `e140d30` — fix: 2 new KISS claim tests + toast→URL assertion + isDocker fixes
-- `aa9d4a3` — feat: remove Allure TestOps (trial expired)
-- `64a9eb4` — fix: CI failures — adaptive heading, admin sub-tabs/username, workspace-notifications @local
-
-### What Was Done
-1. **OrangeHRM 5.8→5.9 changelog analysis:** 5.9 — first new feature in 2 years. 5.8 and 5.8.1 shipped only security improvements.
-2. **Autonoma documentation research:** No depth-vs-breadth config exists — pipeline always covers full app. Only KB `core: true` flag affects prioritization.
-3. **Coverage comparison (PW Agents 8 vs KISS 8):**
-   - 4 tests identical (page load, platform switch, empty submit, create)
-   - PW gaps: Google Chat validation, disable feature, table entries, duplicate
-   - KISS gaps: triple toggle, Send Test button, API cleanup
-4. **Traceability matrix:** 2 Autonoma specs map to ALL 16 tests. Specs describe intent, tests assert behavior.
-5. **+3 new tests** (workspace-notifications.spec.ts):
-   - 5.1 Cross-platform URL mismatch
-   - 5.2 Empty submission with platform+webhook
-   - 5.3 Time picker open+edit
-   - Total: **11 tests** in PW Agents file
-6. **Autonoma CLI artifacts uploaded** (resume → complete). SDK remain unfinished (static Docker, no backend)
-7. **Mutation runner:** timed out on 11 tests (M1-KISS 600s+). Previous 8-test results (6/6 caught) remain valid.
-
-### Mutation Results (8 tests each)
-| Mutation | PW Agents | KISS |
-|----------|:---------:|:----:|
-| 6/6 caught | ✅ | ✅ |
-
-### Article 9 Updates
-- 5.9 = first new feature in 2 years (line 25)
-- 2 specs fully traceable to 16 tests (line 79)
-- Each suite has unique blind spots, equally resilient where they overlap (line 98)
-
-### Updated Workspace Notifications Coverage
-```
-PW Agents: workspace-notifications.spec.ts — 11 tests (8 existing + 3 new)
-KISS:      kiss + advanced — 8 tests
-Autonoma:  2 .md specs (not executable)
-Total:     16 executable + 2 spec files
-```
-
-### Files Modified
-- `e2e/workspace-notifications.spec.ts` — +3 tests (5.1-5.3), total 11
-- `~/Articles/linkedin-posts/AI-Agents/9-three-tools-one-feature.md` — +3 insights (4 lines)
-
-### Key Decisions
-- Autonoma GitHub integration: deferred
-- Claim mutation runner: removed from plan (no PW Agents counterpart)
-- Autonoma feedback: depth limitation, non-executable specs, mutation testing blind spot
+## Archive — Jun–Aug 2026 (compressed, details superseded)
+- **Envs:** demo `opensource-demo.orangehrmlive.com` (RETIRED 2026-09-11, unstable) → local docker 5.4→5.8.1→5.9 (`outputs/local-deployment.yml`) → Render+Aiven (live)
+- **Claim API (reused by seed):** `POST /api/v2/claim/employees/{empNumber}/requests` + `PUT .../action {"action":"SUBMIT"}`; autocomplete bug → prefer API over `pressSequentially`
+- **POM lessons:** `fillByLabel` select/textarea support; pencil `i.bi-pencil-fill` opens forms (cell clicks don't); checkbox not `.oxd-table-cell` (index from 0); routes: `/admin/viewSkills`, `/admin/viewJobTitleList`, `/admin/saveSystemUser`
+- **Tags:** `@local` = needs seeded env (workspace-notifications 5.9-only, buzz/leave data-dependent); `@smoke` runs everywhere; `auth.spec` isolated in `auth` project; `loggedInPage` skips re-login if authenticated; storageState session ~24min idle → relogin in `BasePage.goto`
+- **Allure TestOps:** removed (trial expired Jun); regression-advice workflow posts PR checklist instead
+- **PWA-004:** `seed.spec.ts` → `e2e/.auth/admin.json` (gitignored)
+- **Stryker 10.0.0:** `commandRunner.command` must be STRING; 783 mutants (admin 481 + auth 302); scope TBD
+- **Autonoma:** gpt-4o $1.18 vs deepseek-v3.2 $3.62 (context wall 131K; KB needs 200K+); .md specs not executable; factory endpoints: `/buzz/shares/{id}/likes`, `/recruitment/candidates` (no vacancyId), `/api/v2/directory/employees`
+- **Monitoring:** Grafana OrangeHRM coverage http://localhost:3003 (qa-automation-sandbox/monitoring)
+- **Old Gotchas:** admin-create autocomplete "Invalid" on fresh installs; MAINT-002 isolation flake; llhttp symlink; demo DOM drift between sessions
+- **Content:** Articles phase posts + carousels in `~/Articles` (see git log, not here)
 
 ---
-
-### What Was Done
-1. **Admin module — 18/18 @local tests fixed for 5.8.1 DOM:**
-   - BasePage.ts: `fillByLabel` supports textarea + select dropdowns
-   - AdminPage.ts: `clickUserDetails` uses pencil button `.nth(1)`, `editUserStatus` uses PUT API response, `addPayGradeCurrency` uses `.last()` submit, `clickSave` waits for POST/PUT API response, `goto()` timeout 30s
-   - admin.spec.ts: unique timestamped names, toast checks, URL regex patterns, search-before-edit flow
-
-2. **MyInfo — 7/7 @local tests added:**
-   - `myinfo.spec.ts` — 7 new @local tests using `myInfoPage` POM
-   - Personal details first/last name, Contact Details, Emergency Contacts, Dependents, Job, Salary, Qualifications navigation
-   - All 7 @smoke tests preserved
-
-3. **6 smoke-only modules converted to @local:**
-   - `dashboard.spec.ts` — +4 @local (page loads, widgets visible, widget count, navigate to Admin)
-   - `directory.spec.ts` — +3 @local (page loads, search form, results)
-   - `time.spec.ts` — +4 @local (timesheet page, my timesheet, attendance, actions visible)
-   - `performance.spec.ts` — +3 @local (page loads, review list, KPIs)
-   - `maintenance.spec.ts` — +3 @local (password screen, admin password, wrong password)
-   - `recruitment.spec.ts` — +6 @local (candidates page, add candidate, search form, vacancies page, vacancies table, topbar tabs)
-
-4. **Buzz — 6/6 @smoke → @local:**
-   - All 6 @smoke tests converted to @local (feed depends on posts existing, demo skip pattern)
-   - `can create a post @local` already existed — no change
-
-5. **Leave — 3/3 @smoke → @local:**
-   - All 3 @smoke tests converted to @local (simple page-load tests)
-
-6. **Auth — 4/4 @local tests tagged:**
-   - `auth.spec.ts` — 4 untagged tests → @local tagged
-   - Valid login, invalid password, empty credentials, dashboard accessible
-
-7. **Fault-injection — 2/2 @local tests tagged + fixed:**
-   - `fault-injection-test.spec.ts` — 2 untagged tests → @local tagged
-   - Fixed: `pimPage.goto()` → `page.goto()` (POM waits for `.oxd-table` which doesn't render on mutated API response)
-
-8. **Claim edge cases — 4/4 @local tests added:**
-   - `claim-edge-cases.spec.ts` — create with minimal fields, cancel claim, empty form validation, approve/reject visibility
-   - `pom/ClaimPage.ts` — expanded with `approveClaim()`, `rejectClaim()`, `searchClaims()`, etc.
-
-9. **Claim @smoke → @local conversion:**
-   - All 7 Claim @smoke tests → @local (demo server returns 403 for Claim module)
-
-10. **Smoke suite fix:**
-    - `2.16 View user details @smoke` — fixed `isUserFormVisible()` to check URL instead of `text=System Users` (DOM difference 5.5 vs 5.8.1)
-
-11. **Flaky test fixes (6 tests):**
-    - `AdminPage.goto()` — timeout 20→30s (2.11/2.12/2.15/2.17/2.19 were timing out on slow Docker)
-    - `BuzzPage.createPost()` — flexible selector (`.oxd-buzz-post-input, textarea[placeholder*="What"], [contenteditable="true"]`) + explicit `waitFor` timeout 15s
-
-### Test Suite Stats
-```
-Total @local tests: 73
-Total @smoke tests: 66 (demo server)
-Total tests: ~140 (across all projects)
-
-@local modules (15):
-  Admin: 18/18 ✅
-  Claim: 14/14 ✅ (1 flaky)
-  MyInfo: 7/7 ✅
-  Recruitment: 6/6 ✅
-  Dashboard: 4/4 ✅
-  Time: 4/4 ✅
-  Auth: 4/4 ✅
-  PIM: 3/3 ✅
-  Performance: 3/3 ✅
-  Maintenance: 3/3 ✅
-  Directory: 3/3 ✅
-  Fault-injection: 2/2 ✅
-  Leave: 1/1 ✅
-  Buzz: 1/1 ✅
-```
-
-### POM Updates (this session)
-- **BasePage.ts** — `fillByLabel` supports `.oxd-select-wrapper` dropdowns
-- **AdminPage.ts** — `clickSave` uses `waitForResponse` for POST/PUT, `clickUserDetails` uses pencil button `.nth(1)`, `editUserStatus` uses PUT API response
-- **ClaimPage.ts** — expanded with approve/reject/search methods
-- **MyInfoPage.ts** — unchanged (existing POM sufficient)
-
-### Files Modified
-- `pom/BasePage.ts` — fillByLabel select support
-- `pom/AdminPage.ts` — clickSave, clickUserDetails, editUserStatus, isUserFormVisible
-- `pom/ClaimPage.ts` — approveClaim, rejectClaim, searchClaims, etc.
-- `e2e/admin.spec.ts` — 18 @local tests
-- `e2e/myinfo.spec.ts` — 7 @local tests added
-- `e2e/dashboard.spec.ts` — 4 @local tests added
-- `e2e/directory.spec.ts` — 3 @local tests added
-- `e2e/time.spec.ts` — 4 @local tests added
-- `e2e/performance.spec.ts` — 3 @local tests added
-- `e2e/maintenance.spec.ts` — 3 @local tests added
-- `e2e/recruitment.spec.ts` — 6 @local tests added
-- `e2e/auth.spec.ts` — 4 tests tagged @local
-- `e2e/fault-injection-test.spec.ts` — 2 tests tagged @local + fixed
-- `e2e/claim.spec.ts` — 7 tests @smoke → @local
-- `e2e/claim-edge-cases.spec.ts` — 4 @local tests added
-
-### Known Issues
-- `maintenance.spec.ts:33` — MAINT-002 flaky (test isolation, passes when run alone)
-- Demo server unreliable today (12 chromium failures — all demo connectivity)
-
----
-
-## Session 2026-06-14/15 — Claim + Autonoma + KISS Sorcar
-
-### Claim Module Expansion
-- **Claim API endpoints discovered:**
-  - `POST /api/v2/claim/employees/{empNumber}/requests` — create claim → INITIATED
-  - `PUT /api/v2/claim/requests/{id}/action` with `{"action":"SUBMIT"}` → PAID (direct approval)
-  - Employee Alice Administrator: `empNumber: 58`, Event Tech Conference: `id: 1`
-- **ClaimPage.ts** — expanded with assign/submit/search methods (kept for reference)
-- **claim.spec.ts** — rewritten: 2 smoke tests (page loads, table visible) + 1 @local API test (create+submit)
-- API approach bypasses flaky autocomplete (known OrangeHRM bug with `pressSequentially` + dropdown)
-- **3/3 pass** ✅ (10.8s)
-
-### GitHub Pages Workflow (ai-qa-wiki)
-- `wiki_llm.py` — added `--update-index` (scans wiki/ → wiki-topics.json), `--git-push` (commit+push)
-- `index.html` — rewritten: JS loads `wiki-topics.json` dynamically, raw sources section removed
-- `wiki-topics.json` — 101 topics, 53 raw sources
-- `_config.yml` — `layout: none` (no Jekyll theme), `exclude: [raw/]`
-
-### Autonoma Pipeline (5.8.1 re-run)
-- **Clean start:** `rm -rf ~/.autonoma/orangehrm/` — fresh pipeline on 5.8.1
-- **Model:** gpt-4o (KB) → gpt-4o-mini (testGenerator), via OpenRouter
-- **KB issues (gpt-4o-mini):** 3 feedback iterations, hallucinated 4 Analytics modules, lost `/web/index.php/` routes twice
-- **KB fix (gpt-4o):** $1.18, hit weekly budget limit, correct routes but partial feature list
-- **Test generation (gpt-4o-mini):** 28 .md specs, 5 journey .md specs — plain English, not executable
-- **Review:** 30/30 passed (subjective, no objective run)
-- **OpenRouter balance:** $6 → $4.70 (spent $1.30)
-- **Lesson:** KB requires strong model (deepseek/gpt-4o); gpt-4o-mini regenerates YAML from scratch per iteration
-
-### KISS Sorcar (deepseek-v3.2)
-- **2 runs:** $0.08 (generate) + $0.11 (fix) = $0.19 total
-- **Round 1:** Generated 5 tests + 4 new POM methods for Maintenance module
-  - 3/5 passed, 2 selector hallucinations
-  - `getPurgeRecordsFormVisible()` — `.oxd-form:has-text("Employee Name")` doesn't exist
-  - `getAuthenticationError()` — `.oxd-alert-content-text` doesn't appear on wrong password
-- **Round 2 (Fix-Run):** KISS auto-repaired both:
-  - `enterPassword()` gained `expectSuccess: boolean` parameter
-  - MAINT-003 checks password input visibility instead of error element
-  - Removed `waitForTimeout`, merged duplicate `isPurgeRecordsPage()`
-- **Final:** 3/3 MAINT tests pass as `@smoke` (run on both demo + local)
-- **Files:** `MaintenancePage.ts` expanded (8→12 methods), `maintenance.spec.ts` rewritten (2→3 tests)
-- **Full suite verif:** 37 tests, 33 pass, 3 pre-existing 5.8.1 regressions, 1 flaky, 1 skip
-
-### Selected Test Results (Local — LOCAL=true)
-- **3/3 claim tests pass** ✅ (page loads, table visible, create+submit via API)
-- **3/3 maintenance tests pass** ✅ (password screen, auth, wrong password)
-- **KISS Fix-Run cycle:** 2/5 → 3/3 after auto-repair
-
-## Monitoring
-
-Coverage metrics tracked in `qa-automation-sandbox/monitoring/` — Grafana dashboard:
-- OrangeHRM Coverage & Growth: http://localhost:3003
-- 13/13 modules, 37 tests (24 smoke, 10 local, 3 untagged)
-- Maintenance: 100% smoke coverage (3 tests) — only module with full coverage
-
----
-
-## Historical (Jun 10)
-
-**Date:** 2026-06-10
-**Session:** Autonoma Pipeline Complete — 28 tests generated in ~3 min
-**Status:** COMPLETE
-
-## Work Completed ✅
-
-### Phase 1 Debt — 5/5 items (done Session 31)
-1. **pim.spec.ts: `page.goto()` → POM** — already fixed
-2. **waitForTimeout → explicit waits** — 6 instances replaced (clickSave, searchUser, searchEmployee, navigateTo)
-3. **Negative scenarios** — removed (demo search doesn't filter)
-4. **TEST_CASES.md updated** — LEAVE-001 ✅
-5. **Search robustness** — `waitForResponse` for API completion
-
-### Phase 2 — 4 modules (4 POMs + 4 specs)
-1. **RecruitmentPage.ts** — `goto()`, `clickAdd()`, `fillCandidateForm()`, `clickSave()`, `searchCandidate()`, `getRecordCount()`
-2. **PerformancePage.ts** — `goto()`, `searchReview()`, `getCurrentUrl()`
-3. **BuzzPage.ts** — `goto()`, `createPost()`, `getPostCount()`
-4. **DirectoryPage.ts** — `goto()`, `search(name)` API endpoint discovered: `/api/v2/directory/employees`
-5. **recruitment.spec.ts** — 3 tests: load ✅, add candidate ✅, search ✅
-6. **performance.spec.ts** — 1 test: load ✅ (no review data on demo)
-7. **buzz.spec.ts** — 2 tests: load ✅, create post ❌ (demo blocks)
-8. **directory.spec.ts** — 1 test: load ✅ (no employee search data on demo)
-9. **helpers/fixtures.ts** — all 4 POMs registered
-
-### Key Discoveries
-- **API endpoints mapped for Phase 2:**
-  - `/api/v2/recruitment/candidates` — candidate list + search
-  - `/api/v2/performance/employees/reviews` — performance reviews
-  - `/api/v2/buzz/feed` — buzz feed posts
-  - `/api/v2/buzz/anniversaries` — buzz anniversaries
-  - `/api/v2/directory/employees` — directory employees
-- **Recruitment add candidate works on shared demo** (RECR-002 ✅)
-- **Buzz create post fails on shared demo** — protected/shared instance
-- **Performance reviews empty** — no data on shared demo, search test removed
-- **Directory employees empty** — search returns 0 results on demo
-
-### New Files
-- `pom/BuzzPage.ts` — Buzz social feed POM
-- `pom/DirectoryPage.ts` — Directory employee search POM
-- `e2e/recruitment.spec.ts` — 3 tests (smoke: load + search)
-- `e2e/performance.spec.ts` — 1 test (smoke: load)
-- `e2e/buzz.spec.ts` — 2 tests (smoke: load)
-- `e2e/directory.spec.ts` — 1 test (smoke: load)
-
-## Modified Files
-- `e2e/claim.spec.ts` — 5 new manual tests (navigation tabs, submit page, my claims page, submit tab)
-- `session-checkpoint.md` — this entry
-
-## Session 2026-06-18 — Manual E2E Test Writing (User + AI)
-
-### New Tests Added (4)
-User manually wrote tests in VSCode with AI guidance (guide → write → review → run):
-
-1. **all 5 navigation tabs visible @smoke** ✅ — `.oxd-topbar-body-nav-tab-item` count + text assert
-2. **submit claim page loads @smoke** ✅ — via `claimPage.clickAdd()`, assert `.orangehrm-main-title`
-3. **my claims page loads @smoke** ✅ — `page.goto('/viewClaim')`, assert `h5` heading
-4. **navigate to submit claim tab @smoke** ✅ — click tab link, assert `getByRole('heading')`
-
-### Key Lessons
-- `loggedInPage` fixture = `LoginPage` POM, NOT a raw `page` — use `page` for `goto()` (already logged in via shared fixture)
-- OrangeHRM headings: main module = `.oxd-topbar-header-title`, form heading = `.orangehrm-main-title`, My Claims = `h5`
-- `locator('h6')` → strict mode violation (2 matches) — use `.orangehrm-main-title` or `getByRole`
-- Workflow: AI gives code block → user pastes in VSCode → saves → AI runs via terminal → reports result
-
-### Remaining Claim Scenarios (from 25-scenario plan)
-- 2.2-2.4 (table display)
-- 3.1-3.8 (search & filter, except 3.4 done)
-- 4.1, 4.3-4.5, 4.7 (assign claim edge cases)
-- 5.2-5.3 (submit claim create + verify)
-- 6.1-6.8 (edge cases)
-- 7.1-7.2 (configuration)
-
-### Next Actions
-- Continue manual testing session on demand
-- Or run full suite to check regressions
-
-## Test Results (Local — LOCAL=true)
-- **38 passed, 5 skipped** (43 tests total)
-- **smoke:** 14 passed, 1 skipped (Claim — module not available)
-- **chromium:** 20 passed, 3 skipped (Claim ×2, Admin add user ×1)
-- **local:** 3 passed, 1 skipped (Admin add user — autocomplete broken)
-- **58.9s** total runtime
-- **Fixes this session:**
-  - MyInfo: `waitForFunction` for async form data loading
-  - Time: URL `viewTimeSheet` → `viewTimeModule`, heading "Time" (not "Timesheet")
-  - Claim: skip on local (module not installed in OrangeHRM 5.4)
-  - Recruitment: heading check instead of record count, skip if no data
-  - Admin: skip if Employee Name shows "Invalid" (autocomplete broken)
-
-## Test Results (Demo — no LOCAL flag)
-- **23/24 @smoke pass** ✅ (1 skip — Claim)
-- **37 tests** in demo mode (excludes @local)
-- **37 unique tests**, 7 @local only
-
-## Test Results (Local — LOCAL=true, MacBook)
-- **60 passed ✅, 7 skipped** (Claim ×4 в smoke+chromium, +3 project overlap)
-- **67 total tests** across 3 projects
-- **0 failed** — всё зелёное
-
-## Local Docker Deployment ✅ (MacBook)
-
-### MacBook (текущая сессия)
-- **Stack:** Docker Desktop 29.5.2 (Intel MacBook 2019, 16GB RAM)
-- **URL:** `http://localhost:8080`
-- **Compose:** `OrangeHRM/outputs/local-deployment.yml`
-- **Install:** Browser-based installer, full fresh install
-- **Credentials:** `Admin` / `Orangehrm@2026`
-- **Ресурсы:** ~1.5 GB RAM — работает без тормозов
-- **Docker context:** `desktop-linux` (ранее был `server`)
-
-### Windows Server (предыдущая сессия)
-- **Stack:** docker.io в WSL 2 Ubuntu на Windows 10 Pro, AMD X399
-- **SSH tunnel:** `ssh -L 8080:localhost:8080 Victor@10.24.175.30`
-- **Проблема:** Docker Desktop engine не стартовал (баг WSL 2)
-
-## Known Issues
-- Admin user creation: Employee Name autocomplete doesn't select (shows "Invalid") on fresh instance — **TODO fix**
-- Claim module not available — tests skipped
-- Demo may change selectors between sessions
-- Node.js PATH: use `PATH="/usr/local/bin:$PATH"` before npm/node commands
-- **5.8.1 selector changes:** 3 @local tests fail — MyInfo edit, PIM edit first name, PIM delete employee
-- llhttp symlink: `libllhttp.9.3.dylib` → `libllhttp.9.4.1.dylib` (created manually)
-
-## No-Go Zones
-- Modifying demo source code
-- Storing real credentials in code
-- CI/CD changes without human approval
-
-## Content Work (Session 38-39)
-- **Phase 2 post** rewritten → `2-orangehrm-phase2.md` "The Demo Lies" — search API discovery, 25 tests, 15 smoke. No carousel
-- **Local Deployment post** → `3-orangehrm-local-deployment.md` "Flashback" — Docker saga, SSH tunnel. With carousel PDF
-- **Carousel PDF**: `3-orangehrm-local-deployment-carousel.pdf` (825 KB, 8 slides, OrangeHRM screenshots)
-- **Critical review fixes**: numbers (25/28/15), author lines, bones/organs metaphor, CTA, money paragraph
-- **Test count: 25 unique, 15 smoke, 4 skipped, 3 @local**
-
-## Session 41 — Allure + P0 Tests ✅
-
-### Allure Reporting
-- **Deps:** allure-playwright + allure-commandline (npm)
-- **Config:** `reporter: [['html'], ['allure-playwright']]` in playwright.config.ts
-- **Script:** `"test:allure"` — test + generate + open
-- **.gitignore:** `allure-results/`, `allure-report/`
-- **Verified:** `allure generate` produces working HTML report
-
-### New Tests (+3 @smoke)
-| Spec | Test | Status |
-|------|------|--------|
-| `buzz.spec.ts` | can like a post @smoke | ✅ passes |
-| `admin.spec.ts` | can view existing user details @smoke | ✅ passes |
-| `pim.spec.ts` | can view employee details @smoke | ✅ 1 skip (no data on demo) |
-
-### New POM Methods
-- **BuzzPage:** `likeFirstPost()`, `getFirstPostLikeCount()`
-- **AdminPage:** `viewFirstUser()`, `isUserFormVisible()`
-- **PimPage:** `viewFirstEmployee()`, `isPersonalDetailsVisible()`
-
-## Session 42 — Phase 5: Maintenance Module ✅
-
-### New Tests (+2 @smoke)
-| Spec | Test | Status |
-|------|------|--------|
-| `maintenance.spec.ts` | MAINT-001: password screen visible, username disabled @smoke | ✅ passes |
-| `maintenance.spec.ts` | MAINT-002: enter admin password → maintenance dashboard @smoke | ✅ passes |
-
-### New POM Methods
-- **MaintenancePage:** `isPasswordScreenVisible()`, `isUsernameDisabled()`, `enterPassword()`, `isPurgeRecordsPage()`, `searchEmployee()`, `gotoAccessRecords()`
-
-### Updated Test Counts
-- **24 @smoke** (+2 from session)
-- **6 @local** (admin 1, pim 3, buzz 1, leave 1)
-- **1 un-tagged** (recruitment add candidate)
-- **Total: 31 unique tests** (chromium project — duplicates across projects)
-- **Smoke suite: 23 ✅, 1 skip (Claim — no data on demo)
-- **Chromium: 30 ✅, 1 skip (Claim — no data on demo)
-
-### Key Discovery
-- Maintenance password screen has **Username (disabled) + Password** fields
-- After password entry: Purge Records page with `.oxd-topbar-header-breadcrumb-level` heading
-- No `.oxd-table` on purge employee page — only search form with employee autocomplete
-- `text=Purge Records` resolves to 3 elements (strict mode) — use breadcrumb class instead
-
-## Session 43 — Local OrangeHRM на MacBook + Fixes ✅
-
-### Local Deployment (MacBook Intel 2019, 16GB)
-- **Stack:** Docker Desktop 29.5.2, composer file: `outputs/local-deployment.yml`
-- **Install:** MariaDB 10.11.4 + orangehrm/orangehrm:5.4
-- **Installer:** Пройдён через browser (SPA installer, 5 шагов)
-- **Conf.php:** Создан вручную через `docker exec` в `/var/www/html/lib/confs/Conf.php` (только для bypass installer redirect — потом удалён, установка через нормльный installer)
-- **Credentials:** `Admin` / `Orangehrm@2026`
-- **Docker context:** `desktop-linux` (на Mac ранее был `server`)
-- **Ресурсы:** ~1.5 GB RAM, работает без тормозов
-
-### Fixes for Fresh Local Instance
-| Test | Проблема | Фикс |
-|------|----------|------|
-| BUZZ-001 @smoke | 0 posts на новом инстансе | `getPostCount() > 0` → URL check |
-| Leave apply @local | Heading "Leave" вместо "Apply Leave" на v5.4 | URL check вместо heading |
-| PIM edit first name @local | Admin user firstName input пустой | `waitForFunction` для async загрузки |
-
-### Test Results (LOCAL=true)
-- **60 passed ✅, 7 skipped** (Claim — нет в v5.4)
-- **3 projects:** smoke (24 ✅), chromium (33 ✅), local (3 ✅ — дубли с chromium)
-- **All destructive tests работают** (Admin add, PIM add/edit/delete, Buzz create, Leave apply)
-- **Claim tests skip** (модуль отсутствует в OrangeHRM 5.4)
-
-## Cross-Project — Desktop AI Agents Landscape (2026-06-07)
-- **raw/desktop-ai-agents-2026.md** — full comparison (16+ tools, 5 tiers, pricing)
-- **wiki/desktop-ai-agents-2026.md** — condensed version
-
-## Autonoma Pipeline Complete (2026-06-10) ✅
-
-### Factory Verification (6/6 entities)
-- employee ✅ → systemUser ✅ → leaveRequest ✅ → candidate ✅ → buzzPost ✅ → buzzLike ✅
-- `env-factory.mjs` — 6 factories, UP/DOWN cycle tested, все 200 OK
-- API endpoints discovered: `/buzz/shares/{id}/likes` (like), `/recruitment/candidates` (create without vacancyId)
-
-### Test Generation
-- **28 tests** in `~/.autonoma/orangehrm/qa-tests/`
-- **13 modules:** auth(3), dashboard(2), admin(3), pim(4), leave(2), time(2), recruitment(2), my-info(2), buzz(2), directory(1), claim(2), maintenance(2), performance(1)
-- **5 journey tests:** onboard→user, dashboard→leave, hire→directory, update→buzz, attendance→claim
-- **Format:** Markdown с frontmatter, plain English steps — не .ts, не исполняемые
-- **Review:** 30/30 passed (2nd cycle), 3 failed на 1st → auto-fixed
-
-### Timing
-- **Feature discovery + test gen + review + journeys:** ~3 мин
-- **Factory verification:** ~5 мин (ручной approval)
-- **Total pipeline (resume → output):** ~10 мин
-
-### Ключевые наблюдения
-- **Environment Factory** — сильнейшая сторона Autonoma. 6 entities UP/DOWN без багов
-- **Формат .md** — хорошо для spec review, плохо для запуска. Нужен перевод в Playwright
-- **Review credits** — OpenRouter закончились на 2/4 review cycle, все ошибки "Insufficient credits"
-- **28 тестов vs 43 Playwright тестов** (65% coverage)
-- **3 минуты** генерации против ~часов ручного написания
-
-## Current Session — 5.4 → 5.8.1 Upgrade ✅ (Jun 12)
-### Wiki Note
-- `ai-qa-wiki/raw/orangehrm-5.4-to-5.8.1-upgrade.md` — 7 sections, все проблемы + фиксы + материал для статьи
-
-### What Was Done
-1. **DB backup:** 1,083,396 bytes → `/tmp/orangehrm-5.4-backup.sql`
-2. **docker-compose:** `orangehrm/orangehrm:5.4` → `orangehrm/orangehrm:5.8.1`
-3. **Migration:** `installer/console upgrade:run` — schema migration 175 tables preserved
-4. **Password fix:** Admin login broken after upgrade — reset via bcrypt hash in `ohrm_user.user_password`
-5. **Node fix:** `libllhttp.9.3.dylib` missing — symlink to 9.4.1
-
-### Test Results (5.8.1)
-- **22/22 @smoke pass** ✅ — all modules working
-- **30/33 pass** in full chromium suite ✅ (3 @local failures)
-- **3 failed** (all @local destructive — selector changes in 5.8.1):
-  - `myinfo.spec.ts:19` — `can edit personal details` — likely #firstName input selector
-  - `pim.spec.ts:56` — `can edit employee first name` — likely row selection
-  - `pim.spec.ts:74` — `can delete employee` — search timing on new instance
-- **4 skipped** (Claim ×2 + Admin ×2)
-- **46.6s** smoke / **2.8m** full suite
-
-### Changes
-- `outputs/local-deployment.yml` — `image: orangehrm/orangehrm:5.8.1`
-- `session-checkpoint.md` — this update
-
-### Known Issues
-- `llhttp` symlink: `/usr/local/Cellar/llhttp/9.4.1/lib/libllhttp.9.3.dylib` → `libllhttp.9.4.1.dylib`
-- `brew` / `node` / `npm` are in `/usr/local/bin/` — not in default PATH
-- Docker path: `/usr/local/bin/docker` — not in default PATH
-
----
-
-## Session 2026-06-15 — Autonoma V2 (deepseek-v3.2): $3.62 for 4/6 Steps
-
-### Pipeline Setup
-- **Goal:** Validate "use deepseek for KB" hypothesis from article — run Autonoma on deepseek-v3.2
-- **Budget:** ~$4.70 OpenRouter balance remaining
-- **Models tested:**
-  - `openrouter/deepseek/deepseek-v3.2` ❌ (wrong prefix)
-  - `deepseek/deepseek-v3.2` ✅ (correct, 131K context)
-  - `google/gemini-2.0-flash-001` ❌ (shut down June 1, 2026)
-  - `google/gemini-2.5-flash-001` ❌ (blocked by user on OpenRouter)
-- **Final model:** deepseek-v3.2 (131K context, $0.23/$0.34 per 1M)
-
-### Pipeline Results (4/6 steps)
-
-| Step | Status | Tokens | Cost | Notes |
-|------|--------|--------|------|-------|
-| pagesFinder | ✅ | ~50K | ~$0.02 | 20 pages from POM files |
-| KB | ✅ | ~120K | ~$0.04 | 33 flows, 11 core |
-| entityAudit | ✅ (retry) | 274K overflow → ~100K ✅ | ~$1.20 | 1 overflow → guidance (skip POMs) → 59 entities, 7 standalone |
-| scenarioRecipe | ✅ (model-switched) | 191K → 3×120s timeouts → auto-switch | ~$2.00 | deepseek → kimi-k2.6 → deepseek/v4-pro → openai/gpt-5.4-nano |
-| recipeBuilder | ❌ skipped | — | — | Budget <$1 |
-| testGenerator | ❌ skipped | — | — | Budget <$1 |
-| **Total** | **4/6** | | **~$3.62** | |
-
-### Key Discoveries
-
-1. **Context wall:** deepseek's 131K is insufficient for steps 3-4 (entityAudit needs 200-300K when POM files are loaded)
-2. **Auto model switching:** Autonoma silently switched models 3 times on scenarioRecipe without asking:
-   `deepseek-v3.2 → moonshotai/kimi-k2.6 → deepseek/deepseek-v4-pro → openai/gpt-5.4-nano`
-3. **Gemini unavailable:** Gemini 2.0 Flash shut down June 1, 2026; user blocked Google entirely on OpenRouter
-4. **OPENROUTER_MODEL bug:** Prefix `openrouter/` caused "not available" error — correct format is `deepseek/deepseek-v3.2`
-5. **59 entities mapped** (vs 14 in previous gpt-4o-mini run) — deepseek more thorough when it fits in context
-
-### Article Impact
-- Original article hypothesis "use deepseek → save $1.00" **disproved**
-- deepseek-v3.2 costs MORE ($3.62) than gpt-4o ($1.18) for Autonoma pipeline due to retries + model-switching
-- Pipeline tools need 200K+ context (Claude, Gemini) — 131K is a hard limit
-- Article updated with new section 2b + revised comparison table + corrected cost numbers
-
-### Financial Summary
-
-| | Session 1 (gpt-4o) | Session 2 (deepseek) | Total |
-|---|---|---|---|
-| Autonoma | $1.18 | $3.62 | $4.80 |
-| KISS Sorcar | $0.19 | — | $0.19 |
-| **Total** | **$1.37** | **$3.62** | **$4.99** |
-| Balance | $4.70 remaining | **~$1 remaining** | |
-
-## Next Steps
-
-### P0
-1. ✅ 5.8.1 upgrade — done
-2. ✅ **Claim API tests** — done (3/3 pass)
-3. ✅ **KISS Sorcar Maintenance** — done (3/3 pass)
-4. ✅ **Phase 3 article** — updated with deepseek Autonoma data
-5. Run full suite against 5.8.1
-6. Fix 3 @local regressions (myinfo edit, pim edit, pim delete)
-7. Fix MAINT-003 flaky assert: `toBe(true)` → `toBeTruthy()` or `not.toBeNull()`
-8. Publish Phase 3 article on LinkedIn
-
-### Session 58 (2026-06-22) — PWA-004 Seed + Healer fixes + Full smoke 73/73 ✅
-
-### PWA-004: Seed test integration
-- **e2e/seed.spec.ts** — login as admin + save `storageState` to `e2e/.auth/admin.json`
-- **playwright.config.ts** — `setup` project + `storageState` for all projects except auth
-- **helpers/fixtures.ts** — `loggedInPage` skips re-login if already authenticated
-- **AGENTS.md** — Seed Test section added
-- **.gitignore** — `.auth/` added
-
-### Healer Fixes Applied
-- **AdminPage.ts** — Status dropdown nth index, goto waits for table rows, strict mode fixes
-- **LeavePage.ts/PerformancePage.ts/TimePage.ts** — Removed redundant `this.login()` from `goto()` (broke with storageState)
-- **MaintenancePage.ts** — `getPurgeRecordsFormVisible` simplified (breadcrumb → URL check)
-- **admin.spec.ts** — 3.1/3.3 smoke assertions fixed (page loads only, no data count expectation)
-- **auth.spec.ts** — moved to separate `auth` project (prevents session logout affecting other tests)
-- **helpers/planner-fixtures.ts** — NEW: P1 fixtures from Healer (`adminSession`, `setupAdminTestData`, `setupPlanningEnvironment`, `planNavigationScenarios`)
-
-### Results
-- **Smoke suite:** 73/73 pass (2.2m) ✅
-- **Auth project:** 4/4 pass (9.8s) ✅
-- **Allure TestOps plans created:** 7 plans (OrangeHRM) + 9 plans (qa-automation-sandbox)
-
-### Test Suite Stats
-```
-Spec files: 16 (auth.spec.ts + 15 module specs with @local tags)
-@local tests: 82 (all modules, 81 pass, 1 flaky)
-@smoke tests: 66 (demo server, when available)
-Flaky tests: 1 (MAINT-002 — test isolation issue, passes when run alone)
-Projects: setup → smoke/chromium/auth/local/visual
-```
-
-## P1 — OrangeHRM
-9. **Admin autocomplete fix** — Employee Name dropdown selection
-10. **Purge employee data test** (destructive, local)
-11. **Performance reviews** — add test data on local instance
-
-### P2 — Autonoma (if budget replenished)
-12. Autonoma pipeline needs 200K+ context model (Claude 3.5 Haiku or Gemini) to complete
-13. Сравнение тестов: Autonoma .md vs 2000+ Playwright тестов на Buzzhive
-
-### Budget
-- OpenRouter: ~$1 remaining ($4.99 spent across 2 Autonoma runs + KISS)
-- Autonoma on deepseek: **NOT** cheaper than gpt-4o — context walls cause cost overruns
-- For future runs: use Claude 3.5 Haiku (200K context) if budget allows
-
-## Architecture
-```
-OrangeHRM/
-├── pom/              — 13 Page Objects (BasePage + 12 pages)
-│   ├── BasePage.ts, LoginPage.ts, DashboardPage.ts
-│   ├── AdminPage.ts (455 lines, 50+ methods), PimPage.ts, LeavePage.ts
-│   ├── RecruitmentPage.ts, PerformancePage.ts, BuzzPage.ts, DirectoryPage.ts
-│   ├── MyInfoPage.ts, TimePage.ts, ClaimPage.ts
-│   └── MaintenancePage.ts
-├── e2e/              — 16 spec files (82 @local + 66 @smoke)
-│   ├── seed.spec.ts — auth seed (storageState for agents)
-│   ├── auth.spec.ts (4 @local), admin.spec.ts (18 @local, 25 @smoke)
-│   ├── claim.spec.ts (14 @local), claim-edge-cases.spec.ts (4 @local)
-│   ├── myinfo.spec.ts (7 @local, 7 @smoke), pim.spec.ts (3 @local, 3 @smoke)
-│   ├── recruitment.spec.ts (6 @local, 6 @smoke), dashboard.spec.ts (4 @local, 3 @smoke)
-│   ├── time.spec.ts (4 @local, 5 @smoke), performance.spec.ts (3 @local, 2 @smoke)
-│   ├── maintenance.spec.ts (3 @local, 3 @smoke), directory.spec.ts (3 @local, 3 @smoke)
-│   ├── fault-injection-test.spec.ts (2 @local), buzz.spec.ts (7 @local)
-│   ├── leave.spec.ts (4 @local), rest-api-qa-test.spec.ts (2 untagged)
-│   └── .auth/ — storage state (gitignored)
-├── helpers/          — fixtures.ts (13 POMs), credentials.ts, planner-fixtures.ts
-├── outputs/          — deployment guides, SERVER_ACCESS.md
-├── .github/workflows/— playwright.yml (CI/CD), allure-testops.yml
-├── playwright.config.ts — LOCAL=true switch + 5 projects (setup/smoke/chromium/auth/local/visual)
-└── package.json
-```
-
-## Allure TestOps
-- URL: https://victor2026.testops.cloud
-- Project 1 (orangehrm): 7 test plans (Smoke, Full Regression, Admin Module, etc.)
-- Project 2 (qa-automation-sandbox): 9 test plans (Buzzhive Core Smoke, API Tests, UI Tests, etc.)
+## 2026-09-10 03:14 — Session Wrap-up
+
+**What happened:**
+- Stryker mutation testing configured and verified (`stryker.conf.json` — `commandRunner.command` as string, `--project chromium --grep 'ADMIN-API|AUTH-API'`)
+- 783 mutants identified across `admin.spec.ts` (481) + `auth.spec.ts` (302)
+- Stryker dry-run confirmed working — tests pass with proper filter
+- OrangeHRM Docker deployment configs created for Render
+- `docker-compose.yml`, `render-orangehrm.yaml`, `Dockerfile.render`, `supervisord.conf` committed (`687d2d2`)
+- All passwords updated to `Orangehrm@2026` (not `admin123` from demo)
+- Stryker cleanup completed (removed temp files from project root)
+
+**Stryker status:** Configured, working, but 783 mutants = ~1-2h runtime. Need to reduce scope or accept runtime.
+
+**Next:** Deploy OrangeHRM on Render tomorrow
+
+## 2026-09-11 04:45 MSK — OrangeHRM LIVE on Render + Aiven MySQL ✅
+
+**Result:** `https://orangehrm-app.onrender.com` installed (5.9, all migrations), login `Admin` / `Orangehrm@2026`, survives redeploys.
+
+**Architecture (final):**
+- Render free web service `orangehrm-app` (Apache + PHP only, NO local DB) ← `victor-render2026/orangehrm-render`
+- DB: Aiven free MySQL (`mysql-339a7caa-orangehrm-db.a.aivencloud.com:23149`, db `orangehrm`, user `avnadmin`, 1GB/1GB) — same pattern as Buzzhive→Neon
+- `start.sh` restores `lib/confs/Conf.php` + `key.ohrm` from env on boot (ephemeral FS!) — `OHRM_DB_*` in Blueprint, `OHRM_DB_PASS` via `sync: false` (dashboard-only, not in git)
+- Debug pages (`aiven-test.php`, `install-log.php`) removed from image
+
+**Gotchas solved:**
+1. MariaDB-in-container dies OOM on 512MB free tier (even 16MB buffer pool) → dropped local DB entirely
+2. Installer 2002 on Aiven host — cause was whitespace from copy-paste in Host/Port fields (diagnosed via `aiven-test.php`: DNS/TCP/PDO all OK from same container). Fix: retype manually + Existing Empty Database
+3. Migration V3_3_3 fails 3750 — Aiven `sql_require_primary_key=ON` → set OFF in Aiven Advanced configuration
+4. Post-redeploy blank login 500 — `key.ohrm` created root:600, Apache runs www-data → `chown www-data + chmod 644` both files (`d63824c`)
+5. Blueprint `Failed sync` + `0 services selected` — service was created manually; deploy via service page Manual Deploy (Blueprint sync page also works: `/blueprint/<id>/sync/...`)
+6. Free instance spins down on idle (+50s cold start) — CI/tests need generous timeouts (already 60s)
+
+**Commits (`victor-render2026/orangehrm-render`, main):** `9adf75f` no-DB image → `f0e75a0` aiven-test diag → `7d26a13` install-log viewer → `7a1243e` Conf/key restore from env → `d63824c` www-data perms fix (LIVE)
+
+**Aiven creds:** Service URI in Render dashboard; app DB `orangehrm`; IP allowlist = Open to all
+
+**Next (needs user OK per AGENTS.md — config boundaries):**
+- `playwright.config.ts` BASE_URL → Render URL (ask)
+- `helpers/credentials.ts` — already handles `LOCAL=true` → `Orangehrm@2026` ✅ no change needed
+- GitHub CI `vars.BASE_URL` → Render URL
+- Decide: fork vs migrate (see discussion 2026-09-11)
+
+**Agent warm-check 2026-09-11:** dashboard без сессии → HTTP 302 на логин за 0.67с (холодного сна нет). Caveats для one-pager: cold start 30–60с после idle (warm-up перед прогонами); фриз на конкретный деплой + no-redeploy на окно.
+**Correction:** сид-данные НЕ сбрасываются при рестарте — БД на внешнем Aiven (persistent), из env восстанавливаются только `Conf.php`/`key.ohrm`. Перед раном проверять не сиды, а живость инстанса (cold start).
+**Pending:** решение А (форк RENDER-режим) vs Б (миграция дефолта на Render) — за пользователем.
+
+## 2026-09-11 05:10 MSK — Вариант Б внедрён, сид зелёный ✅
+
+**Изменения (uncommitted, в работе):**
+- `playwright.config.ts` — `export const RENDER_URL`, baseURL по умолчанию → Render (LOCAL untouched, `BASE_URL` override сохранён)
+- `helpers/credentials.ts` — пароль по таргету: LOCAL/Render/localhost → `Orangehrm@2026`, чужой хост → `admin123` (демо только через явный override)
+- `e2e/seed.spec.ts` — pre-step `warm up target` (до 150с, скип при LOCAL) + `setTimeout(180000)` на сид
+- `pom/BasePage.ts` — убран хардкод demo-URL (импорт RENDER_URL из конфига)
+- `pom/LoginPage.ts` — `goto()` идёт напрямую через `page.goto` (bypass `super.goto`): найден рейс `reloginIfNeeded` (авто-логин на /auth/login) против ожидания формы — на медленном Render падало с дашбордом на скрине
+
+**Проверка:** `npx playwright test e2e/seed.spec.ts --project=setup` → 2 passed (14.0s), `e2e/.auth/admin.json` перезаписан под Render
+**Остаток:** GitHub CI `vars.BASE_URL` → Render URL (настройки репо, не код); коммит по команде пользователя
+
+## 2026-09-11 ~17:00 MSK — PAUSE. CI diagnosis found, fix pending
+
+**CI #119:** smoke 80 tests / 2 workers → 59m44s → killed by 60m job cap. Mass ×/T/F = systemic, not data.
+**Root cause (proven locally, dashboard.spec 1 test = 3.3 min fail):** smoke project loads valid `admin.json` storageState (seed saves working Render session) → browser already logged in → `LoginPage.goto()` lands on login URL → app redirects to dashboard → username input never appears → 30s expect + reloads × 3 attempts burn ~3 min per test, then fail. Screenshot at failure = dashboard as Victor Admin. On demo this passed only because demo sessions expired fast.
+**Planned fix (after pause):** `LoginPage.goto()` early-return when already authenticated (dashboard title visible / URL not login) instead of forcing form wait. Then re-run seed+smoke subset locally, then CI.
+**Also pending:** user logout/login cycle OK (their words); dirty files decision (AGENTS.md Pi-section legit, root Dockerfile.render/render-orangehrm.yaml dead, .obsidian now gitignored+untracked); CI vars.BASE_URL set by user; commit+push of cleanup pending user command.
+
+## 2026-09-11 вечер — Session end
+- OrangeHRM 5.9 LIVE: Render `orangehrm-app` (image `d63824c`) + Aiven MySQL (`orangehrm` DB), `Admin`/`Orangehrm@2026`, redeploy-safe (Conf/key из env)
+- Вариант Б влит: `9eec36f` (Render-дефолт, пароль по таргету, warm-up) + `6fa6cc8` (CI: BASE_URL, 60м) — оба запушены; CI var выставлен пользователем
+- CI #116-119: упираются в кап (30м→60м); диагноз — storageState-сессия + `LoginPage.goto` ждёт форму → ~3 мин/тест; фикс запланирован (early-return)
+- Cleanup сделан наполовину: корневые дубли удалены из индекса, `.obsidian/` в gitignore+untracked — НЕ закоммичено; `AGENTS.md` Pi-секция нетронута
+- Открыто на завтра: фикс goto → локальный прогон → коммит/пуш → CI green → решение по Stryker-скоупу (783 мутанта)
+
+## 2026-09-11 вечер — API-сид в setup, claim-падения закрыты ✅
+- `e2e/seed-data.spec.ts` (идемпотентный check-then-create, скип при LOCAL): employee Alice Administrator + event Tech Conference + ≥1 claim (USD) через `/api/v2` с куками UI-сессии (без OAuth)
+- `playwright.config.ts`: setup testMatch + seed-data.spec.ts
+- Локально: setup 3 passed; claim-search 8 passed + 1 flaky (3.4)
+- Commit `9d17599`, push ✅ — CI ран полетел
+
+## 2026-09-11 ночь — Session end, debug in progress
+- Запушено: `04ed8d1` (relogin→goto path), `9d17599` (API-сид: Alice/Tech Conference/claim + setup testMatch)
+- CI smoke с сидом: всё ещё красный — кластеры: claim-search, claim-validation 6.1-6.3, time×5, AG-04/AG-11, performance tabs, recruitment candidate
+- Локальный полный smoke: 77 passed / 16 failed / 5 flaky (45 мин). claim-search standalone зеленел → подозрение на межтестовое удаление сида в сьюте
+- Локальный стенд после мутаций как эталон не используется (сид строится через API на самом таргете)
+- Positions-чекпоинты не трогаю (подтверждено пользователю)
+- Next: interference claim-спеков → time/admin-gaps/performance/recruitment по одному → CI green
+
+## 2026-09-12 — Suite hardening vs Render, commit 67874d9 ✅
+- claim-search: waitForTable + expect.poll counts + toHaveCount 30s; Reference-Id колонка nth(0) (чекбокс не .oxd-table-cell); 3.8 пустое состояние = body ИЛИ No Records
+- claim-validation: clickAdd ждёт кнопку (waitForTable + 30s click)
+- BasePage.relogin: ждать dashboard после submit, потом goto(path) — убрана гонка обрыва логина
+- AG-04: /admin/skill → /admin/viewSkills (реальный роут); AG-11: форма через i.bi-pencil-fill
+- LoginPage.loginAsAdmin: waitForLoad 60s (auth/validate stalls)
+- Локально: dashboard/auth/pim/directory/myinfo/claim-search/claim-validation/performance/recruitment/admin-gaps — всё зелено
+- Push 9d17599..67874d9, CI ран полетел
+
+## 2026-09-12 (cont.) — claim-search timeout + serialize, checkpoint slim ✅
+- `8f752c1`: claim-search describe timeout 180s (waits overflow 60s budget → "target closed")
+- `65011f6`: no in-file `parallel` (claim-*), `workers: 1` on CI — shared PHP session wedges free-tier under parallel load
+- Checkpoint slimmed 817→~140 lines (archive compressed, Sep log kept)
+- CI serial run in flight, awaiting green
+
+## 2026-09-12 — CI GREEN ✅ (#126, 56m22s, push 65011f6)
+- smoke (98 tests, serial) + python + full chromium — все зелёные против Render
+- Остались только warnings: Node20 deprecation от actions/checkout/setup-node/setup-python (косметика, чинится апстримом)
+- Эпопея закрыта: demo retired → Render+Aiven live → suite hardened → CI green
+
+## 2026-09-12 — TEST_CASES.md refresh + decisions ✅
+- Doc: AUTH-005/DIR-002/BUZZ-003 → ✅, CLAIM-002 → ✅ (LOCAL); totals 34/52→38/52 (65%→73%); legend += Render note
+- Решения пользователя: мутанты → другой агент (после Ради́ка + статьи 26 в пн); дэшборд позже; недостающие тесты (ADMIN-004/005, LEAVE-004...) — запланировать
+
+## 2026-09-12 — Scheduled: ADMIN-004/005 + LEAVE-004 for CI ✅ (planned)
+- ADMIN-004 (delete user), ADMIN-005 (edit user): @local exist, promote to @smoke with timestamped names
+- LEAVE-004 (reject request): needs leave-request seed + reject flow
+
+## 2026-09-13 — ADMIN-004/005 promoted, LEAVE-004 deferred, CI #129 green ✅
+
+**ADMIN-004/005 → @smoke:**
+- 2.17 (edit) + 2.19 (delete) rewritten to use `createUserViaAPI`/`deleteUserViaAPI` (avoids flaky employee autocomplete)
+- `AdminPage.ts` gains API helpers + 30s autocomplete waits; test cleanup deletes via API
+- Locally passing 5/5; CI #129 54m56s green (`150d602`)
+
+**Seed data expanded (`seed-data.spec.ts`):**
+- Step 4: alice user account (userRoleId 2, `AlicePass123!`)
+- Step 5: leave chain — period (Jan 1), Annual type, 10-day entitlement for Alice
+
+**LEAVE-004 deferred — root cause identified:**
+- OrangeHRM 5.9 **auto-approves all leaves** → status "Scheduled", never "Pending Approval"
+- Admin Reject button requires "Pending Approval" status; Leave List default filter is "Pending Approval"
+- Explored 6 approaches: two-user UI context (session conflicts), API as Alice (403 ESS role), chip removal (status required), direct page.goto (Dashboard redirect), LeavePage.applyLeave (uses admin creds), API-create-then-search (auto-approved hides from filter)
+- **Blocker:** leave approval workflow not configured on this instance; needs Admin → Leave → Configure or equivalent
+- TODO: configure approval workflow OR test "Cancel" on approved leave instead
+
+**Files changed:**
+- `e2e/admin.spec.ts` — API create/delete helpers, 2.17/2.19 tagged @smoke
+- `e2e/leave.spec.ts` — cleaned up, LEAVE-004 removed (deferred)
+- `e2e/seed-data.spec.ts` — +alice user, +leave chain
+- `pom/AdminPage.ts` — API helpers, 30s waits
+- `pom/LeavePage.ts` — reverted to simple admin login
