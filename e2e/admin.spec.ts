@@ -3,8 +3,13 @@ import { test, expect, type Page } from '../helpers/fixtures';
 // UI user creation depends on flaky employee autocomplete — create via API,
 // exercise edit/delete via UI. Alice (empNumber 2) comes from the setup seed.
 async function createUserViaAPI(page: Page, username: string): Promise<number> {
+  // Find an existing employee to link the user to
+  const empRes = await page.request.get('/web/index.php/api/v2/pim/employees?limit=5');
+  const empData = empRes.status() === 200 ? (await empRes.json()).data : [];
+  const empNumber = empData.length > 0 ? empData[0].empNumber : 2;
+
   const res = await page.request.post('/web/index.php/api/v2/admin/users', {
-    data: { username, password: 'TestPass123!', userRoleId: 2, empNumber: 2, status: true },
+    data: { username, password: 'TestPass123!', userRoleId: 2, empNumber, status: true },
   });
   expect(res.status()).toBe(200);
   return (await res.json()).data.id;
