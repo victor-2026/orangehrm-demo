@@ -176,3 +176,92 @@
 - `e2e/seed-data.spec.ts` — +alice user, +leave chain
 - `pom/AdminPage.ts` — API helpers, 30s waits
 - `pom/LeavePage.ts` — reverted to simple admin login
+
+## 2026-09-14 — Leave module 403 fix + Grafana TestData
+
+**Leave module 403 Forbidden — root cause + fix:**
+- Leave module was disabled in OrangeHRM (test `8.7 Modules disable @local` disables it)
+- Existing leave tests were "passing" incorrectly — only checked URL, not page content (screenshot showed 403 error page)
+- Fixed leave tests to verify page loads correctly:
+  - Added `isModuleForbidden()` check for 403 detection
+  - Added `waitForLoadState()` for proper page load
+  - Changed heading assertions to use `.oxd-topbar-header-breadcrumb-module` (more reliable)
+- Added test `8.8 Modules enable @local` to re-enable Leave module after disable test
+- All 7 leave tests now pass locally
+
+**Grafana fix:**
+- Infinity plugin v4.0.0 incompatible with Grafana 11.6 (backend-only, no React frontend)
+- Switched to TestData datasource (built-in, works)
+- Dashboard: http://localhost:3003/d/orangehrm-qa/orangehrm-qa-metrics (demo data)
+- Real data: http://localhost:3002/grafana/dashboards/index.html (HTML dashboard, 8 data points, 73% coverage)
+- Committed: `f81ed30` (docker-compose + datasource provisioning)
+
+**Commits:**
+- `405db4c` — leave tests verify page loads correctly, not just URL
+- `973df5a` — add test 8.8 to re-enable Leave module after disable test
+- `f81ed30` — replace broken Infinity plugin with TestData datasource
+- `a6cca0c` — rewrite all Grafana dashboards to use TestData datasource
+- `6bb933c` — add LEAVE-004 assign leave page test
+- `30d8a04` — fix Render cold start timeouts (myinfo qualifications, dashboard)
+
+**CI #134 failed (98 passed, 1 failed, 1 flaky):**
+- ❌ `myinfo qualifications page loads @smoke` — timeout 60s (Render cold start)
+- ⚠️ `dashboard quick launch widgets visible @smoke` — flaky (passes on retry)
+- Fix: increased timeouts in DashboardPage.goto (30s) and myinfo qualifications (domcontentloaded + 30s wait)
+
+**Grafana dashboards updated:**
+- All 6 dashboards rewritten to use TestData datasource (Infinity v4 incompatible with Grafana 11.6)
+- OrangeHRM Coverage: 5 panels (timeseries, stat ×3, table) with real data
+- Uptime Monitor: 3 panels (timeseries, stat ×2)
+- DORA Core: 4 panels (timeseries ×3, table)
+- Buzzhive Quality Gates: 3 panels (timeseries ×2, table)
+- Buzzhive Test Health: 3 panels (timeseries ×2, table)
+- AI Agent Effectiveness: 5 panels (barchart ×2, table, stat ×2)
+- Dashboard URL: http://localhost:3003/dashboards
+
+## 2026-09-14 — Session wrap: Leave 403 fix + Grafana TestData + CI cold-start fixes
+
+**Leave module 403 Forbidden — root cause + fix:**
+- Leave module was disabled (test `8.7 Modules disable @local`)
+- Added test `8.8 Modules enable @local` to re-enable after disable test
+- Leave tests rewritten to verify page loads (not just URL): `isModuleForbidden()` + `waitForLoadState()` + `.oxd-topbar-header-breadcrumb-module`
+- LEAVE-004 assign leave page test added (assign page accessible, form elements present)
+- All 8 leave tests pass locally
+
+**Grafana — Infinity v4 incompatible with Grafana 11.6:**
+- Root cause: Infinity plugin is backend-only, no React frontend for Grafana 11.x
+- Fix: switched to TestData datasource (built-in)
+- All 6 dashboards rewritten with inline CSV data
+- Test dashboards (test-coverage, orangehrm-qa, test-simple) deleted
+- OrangeHRM Coverage dashboard: http://localhost:3003/d/orangehrm-coverage/orangehrm-e28094-coverage-and-growth
+
+**CI #134 failed → fixes pushed:**
+- ❌ `myinfo qualifications page loads @smoke` — timeout 60s on Render cold start
+  - Fix: `domcontentloaded` + 30s `waitForSelector` instead of `networkidle`
+- ⚠️ `dashboard quick launch widgets visible @smoke` — flaky
+  - Fix: `DashboardPage.goto()` timeout 10s → 30s
+- ❌ `admin 2.17/2.19` — `createUserViaAPI` returned 422 (hardcoded `empNumber: 2`)
+  - Fix: dynamically find empNumber via `/api/v2/pim/employees`
+
+**Commits (this session):**
+- `405db4c` — leave tests verify page loads correctly
+- `973df5a` — test 8.8 re-enable Leave module
+- `f81ed30` — replace Infinity with TestData datasource
+- `a6cca0c` — rewrite all Grafana dashboards
+- `6bb933c` — LEAVE-004 assign leave page test
+- `30d8a04` — increase timeouts for Render cold starts
+- `32cc2ab` — dynamic empNumber in createUserViaAPI
+
+**Status:**
+- CI should be green on next run (all smoke fixes pushed)
+- 38/52 tests pass (73%), 14 remaining are @local only
+- Grafana dashboards functional with TestData (real data from metrics JSON)
+- Leave module accessible, LEAVE-004 assign page verified, full cancel flow deferred
+
+**Remaining @local tests (not blocking CI):**
+- PIM-006/007 — not implemented
+- LEAVE-005 — leave type filter
+- TIME-003 — add time entry
+- PERF-002 — performance search
+
+*Обновлено: 2026-09-14*
