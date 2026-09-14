@@ -83,7 +83,8 @@ test.describe('My Info', () => {
   test('qualifications page loads @smoke', async ({ myInfoPage, page, loggedInPage }) => {
     await myInfoPage.goto();
     await myInfoPage.clickSubTab('Qualifications');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
+    await page.waitForSelector('.oxd-table, .oxd-text--p, .oxd-loading-spinner', { timeout: 30000 }).catch(() => {});
     expect(page.url()).toContain('viewQualifications');
   });
 

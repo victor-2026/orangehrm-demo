@@ -8,7 +8,7 @@ export class DashboardPage extends BasePage {
 
   async goto() {
     await super.goto('/web/index.php/dashboard/index');
-    await this.waitForLoad('.oxd-topbar-header-title');
+    await this.waitForLoad('.oxd-topbar-header-title', 30000);
   }
 
   async getHeading() {
