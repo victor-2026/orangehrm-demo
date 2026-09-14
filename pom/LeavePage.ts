@@ -93,4 +93,13 @@ export class LeavePage extends BasePage {
   async getStatus() {
     return this.page.textContent('.oxd-status-cell');
   }
+
+  async isModuleForbidden() {
+    return this.page.locator('text=403').isVisible().catch(() => false) ||
+           this.page.locator('text=Module Forbidden').isVisible().catch(() => false);
+  }
+
+  async waitForLoadState() {
+    await this.page.waitForLoadState('networkidle').catch(() => {});
+  }
 }
