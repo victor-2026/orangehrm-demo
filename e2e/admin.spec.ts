@@ -456,6 +456,14 @@ test.describe('Admin Module', () => {
       await expect(page.locator('.oxd-toast')).toBeVisible({ timeout: 10000 });
     });
 
+    test('8.8 Modules enable @local', async ({ adminPage, page, loggedInPage }) => {
+      await adminPage.goto();
+      await adminPage.navigateToModules();
+      await adminPage.toggleModule('Leave', true);
+      await page.click('button[type="submit"]');
+      await expect(page.locator('.oxd-toast')).toBeVisible({ timeout: 10000 });
+    });
+
     test('8.9 OAuth Client @smoke', async ({ adminPage, page, loggedInPage }) => {
       await adminPage.goto();
       await adminPage.navigateToOAuthClients();
