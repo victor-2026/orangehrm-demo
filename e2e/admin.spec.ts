@@ -124,7 +124,7 @@ test.describe('Admin Module', () => {
       if (rowCount > 0) {
         for (let i = 0; i < rowCount; i++) {
           const cells = rows.nth(i).locator('.oxd-table-cell');
-          const status = await cells.nth(4).textContent();
+          const status = await cells.nth(3).textContent();
           expect(status).toBe('Enabled');
         }
       }
