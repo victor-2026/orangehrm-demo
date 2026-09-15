@@ -209,6 +209,10 @@
 - ⚠️ `dashboard quick launch widgets visible @smoke` — flaky (passes on retry)
 - Fix: increased timeouts in DashboardPage.goto (30s) and myinfo qualifications (domcontentloaded + 30s wait)
 
+**CI #137 failed (99 passed, 1 failed):**
+- ❌ `admin 2.5 Search by Status @smoke` — wrong column index (4→3, Status is 4th column not 5th)
+- Fix: `cells.nth(4)` → `cells.nth(3)` (table headers: Username, User Role, Employee Name, Status, Action)
+
 **Grafana dashboards updated:**
 - All 6 dashboards rewritten to use TestData datasource (Infinity v4 incompatible with Grafana 11.6)
 - OrangeHRM Coverage: 5 panels (timeseries, stat ×3, table) with real data
@@ -251,6 +255,7 @@
 - `6bb933c` — LEAVE-004 assign leave page test
 - `30d8a04` — increase timeouts for Render cold starts
 - `32cc2ab` — dynamic empNumber in createUserViaAPI
+- `7a476c4` — fix admin 2.5 column index (Status is col 3, not 4)
 
 **Status:**
 - CI should be green on next run (all smoke fixes pushed)
