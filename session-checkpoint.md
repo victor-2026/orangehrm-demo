@@ -273,3 +273,28 @@
 - PERF-002 — performance search
 
 *Обновлено: 2026-09-14*
+
+## 2026-09-15 — Scope fixed: /brief + /debrief + Render bandwidth guard
+
+**1. Chief-of-Staff scope (from Zborovsky case) — PLANNED, weekend TODO:**
+- Phase 0: `~/.config/opencode/chief-of-staff/profile.md` (цели, проекты, люди, anti-goals/игнор-лист) — 15 мин интервью
+- Phase 1: `~/.config/opencode/skills/brief/SKILL.md` — утренний отчет (TL;DR, план, блокеры, быстрые победы, черновики), входы только локальные (checkpoint tails, git log, gh run list)
+- Phase 2: `~/.config/opencode/skills/debrief/SKILL.md` — вечерний слив 3 мин → append в checkpoint + правки profile.md (только предложить)
+- Фильтр «важно мне»: скоринг 0/1/2 по осям (цель / действие сегодня / цена пропуска), порог >= 3, anti-goals режут до скоринга; калибровка по пометкам 5-7 дней
+- Full plan: `ai-qa-wiki/raw/zborovsky-ai-chief-of-staff-doordash-2026.md` (wiki-topics: 337)
+- ⏰ WEEKEND REMINDER: Phase 0 интервью + скелет profile.md (я не умею пуш-уведомления — поставь напоминание в телефон)
+
+**2. Render bandwidth 70% of 5GB (Hobby) — FIXED source of burn:**
+- Root cause: каждый push в main (включая docs-коммиты чекпоинтов, 5+ за 14.09) запускал полный CI: smoke 100 тестов ~40 мин + full chromium + Python
+- Fix: `paths-ignore: ['**.md', 'docs/**']` на push/PR — docs-коммиты больше не жгут трафик
+- Rules (going forward):
+  - k6 (`npm run test:k6*`) — НИКОГДА против Render, только `:local` (load test съест гигабайты за минуты)
+  - Итерации локально через Docker (`LOCAL=true`), Render — только CI
+  - Schedule `0 5 * * *` оставлен (1 прогон/день); если дойдет до 90% — резать schedule до weekly + full только вручную
+
+**Commits (this session):**
+- `fbba0b2` — checkpoint CI #138 (docs, no CI after fix)
+- `59989dc` — simplify admin 2.5 test
+- (pending) workflow paths-ignore + this checkpoint
+
+*Обновлено: 2026-09-15*

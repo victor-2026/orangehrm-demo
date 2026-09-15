@@ -3,8 +3,14 @@ name: Playwright E2E
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
   pull_request:
     branches: [main]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
   schedule:
     - cron: '0 5 * * *'
   workflow_dispatch:
