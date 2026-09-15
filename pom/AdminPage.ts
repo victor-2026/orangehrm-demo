@@ -68,6 +68,7 @@ export class AdminPage extends BasePage {
     await this.page.click(`.oxd-select-option:has-text("${status}")`);
     await this.page.click('button:has-text("Search")');
     await this.waitForLoad('.oxd-table-body .oxd-table-row');
+    await this.page.waitForTimeout(2000);
   }
 
   async searchCombined(userRole: string, status: string) {
