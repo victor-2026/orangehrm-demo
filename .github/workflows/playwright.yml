@@ -12,7 +12,9 @@ on:
       - '**.md'
       - 'docs/**'
   schedule:
-    - cron: '0 5 * * *'
+    # PAUSED 2026-09-16: Render Hobby suspended (5GB bandwidth out, reset ~Oct 1).
+    # Re-enable when service resumes. Manual runs: workflow_dispatch.
+    # - cron: '0 5 * * *'
   workflow_dispatch:
 
 jobs:
