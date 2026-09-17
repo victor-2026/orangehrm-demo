@@ -298,3 +298,8 @@
 - (pending) workflow paths-ignore + this checkpoint
 
 *Обновлено: 2026-09-15*
+
+## 2026-09-16 — All 5 @local tests implemented, 38→43/52 (83%)
+- PIM-006 (login credentials; strong password — 'Pass123!' blocked as guessable), PIM-007 (API-seeded 55 rows; pagination is `ul.oxd-pagination__ul`), LEAVE-005 (DB-seeded leave type; single dropdown cycle; no reload — reload hangs SPA shell), PERF-002 (autocomplete-aware search), TIME-003 (API customer/project + DB activity seed; autocomplete+activity row flow).
+- Key env lessons: --workers=1 mandatory locally (PHP session lock serialized 2 workers → 16-min hangs); attendance routes 404 (displayAttendanceStatistics/viewMyAttendanceRecord gone) — existing attendance tests pass vacuously on URL-only asserts.
+- TEST_CASES.md updated. Commits pushed.

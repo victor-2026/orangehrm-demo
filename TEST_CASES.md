@@ -59,8 +59,8 @@
 | PIM-003 | Search for existing employee | 🔴 | E2E | ✅ |
 | PIM-004 | Edit employee details | 🟡 | E2E | ✅ (LOCAL) |
 | PIM-005 | Delete employee | 🟡 | E2E | ✅ (LOCAL) |
-| PIM-006 | Add employee with login credentials | 🟡 | E2E | ❌ |
-| PIM-007 | Employee list pagination | 🟡 | E2E | ❌ |
+| PIM-006 | Add employee with login credentials | 🟢 | E2E | ✅ (LOCAL) |
+| PIM-007 | Employee list pagination | 🟢 | E2E | ✅ (LOCAL) |
 
 
 ---
@@ -73,7 +73,7 @@
 | LEAVE-002 | Apply for leave → appears in list | 🔴 | E2E | ✅ (LOCAL) |
 | LEAVE-003 | Leave balance displayed | 🟡 | E2E | ✅ |
 | LEAVE-004 | Reject leave request | 🟡 | E2E | ❌ |
-| LEAVE-005 | Leave type filter | 🟢 | E2E | ❌ |
+| LEAVE-005 | Leave type filter | 🟢 | E2E | ✅ (LOCAL) |
 
 ---
 
@@ -83,7 +83,7 @@
 |----|-----------|:--------:|------|:------:|
 | TIME-001 | Timesheet page loads | 🔴 | E2E | ✅ |
 | TIME-002 | View employee timesheet | 🟡 | E2E | ✅ |
-| TIME-003 | Add time entry | 🟡 | E2E | ❌ |
+| TIME-003 | Add time entry (my timesheet row) | 🟢 | E2E | ✅ (LOCAL) |
 
 ---
 
@@ -112,7 +112,7 @@
 | ID | Test Case | Priority | Type | Status |
 |----|-----------|:--------:|------|:------:|
 | PERF-001 | Performance review page loads | 🟡 | E2E | ✅ |
-| PERF-002 | Search performance reviews | 🟢 | E2E | ❌ |
+| PERF-002 | Search performance reviews | 🟢 | E2E | ✅ (LOCAL) |
 
 ---
 

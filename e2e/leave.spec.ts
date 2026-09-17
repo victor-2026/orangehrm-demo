@@ -62,4 +62,32 @@ test.describe('Leave Management', () => {
     await expect(page.locator('text=From Date')).toBeVisible();
     await expect(page.locator('text=To Date')).toBeVisible();
   });
+
+  test('LEAVE-005: leave type filter @local', async ({ leavePage, page }) => {
+    test.setTimeout(120000);
+    await leavePage.goto();
+    await leavePage.waitForLoadState();
+
+    const isForbidden = await leavePage.isModuleForbidden();
+    expect(isForbidden, 'Leave module should not return 403 Forbidden').toBe(false);
+
+    // DB seed TESTVacationSeed is pre-seeded directly in DB (see checkpoint).
+    // API top-up below is best-effort only. Single dropdown cycle on purpose:
+    // option reads + filtering in one open keeps the test inside timeouts.
+    const tsLeave = Date.now();
+    await leavePage.page.evaluate(async (ts: number) => {
+      try {
+        await fetch('/web/index.php/api/v2/leave/leave-types', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: `TESTVacation${ts}` }),
+          signal: AbortSignal.timeout(10000),
+        });
+      } catch { /* best-effort */ }
+    }, tsLeave).catch(() => {});
+    await expect(page.locator('.oxd-form').first()).toBeVisible({ timeout: 20000 });
+
+    await leavePage.filterByLeaveType('TESTVacationSeed');
+    await expect(page.locator('.oxd-table')).toBeVisible({ timeout: 15000 });
+  });
 });

@@ -55,6 +55,31 @@ export class LeavePage extends BasePage {
     return this.page.isVisible('.oxd-table');
   }
 
+  async getLeaveTypeOptions(): Promise<string[]> {
+    const group = this.page.locator('.oxd-input-group:has-text("Leave Type")');
+    const typeSelect = group.locator('.oxd-select-text-input');
+    await typeSelect.click();
+    // Options load async — wait for more than the "-- Select --" stub.
+    await this.page.waitForFunction(
+      () => document.querySelectorAll('.oxd-select-option').length > 1,
+      { timeout: 15000 }
+    ).catch(() => {});
+    const options = await this.page.locator('.oxd-select-option').allTextContents();
+    await this.page.keyboard.press('Escape');
+    return options.map(o => o.trim()).filter(o => o && !o.includes('Select') && o !== 'No Records Found');
+  }
+
+  async filterByLeaveType(type: string) {
+    const group = this.page.locator('.oxd-input-group:has-text("Leave Type")');
+    await group.locator('.oxd-select-text-input').click();
+    const option = this.page.locator(`.oxd-select-option:has-text("${type}")`).first();
+    await option.scrollIntoViewIfNeeded().catch(() => {});
+    await option.click({ timeout: 15000 });
+    await this.page.keyboard.press('Escape').catch(() => {});
+    await this.page.click('button:has-text("Search")', { timeout: 15000 });
+    await this.waitForLoad('.oxd-table', 15000).catch(() => {});
+  }
+
   async getHeading() {
     return this.page.textContent('.oxd-topbar-header-title');
   }

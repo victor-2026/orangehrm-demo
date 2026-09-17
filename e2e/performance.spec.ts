@@ -25,4 +25,11 @@ test.describe('Performance', () => {
     await performancePage.gotoKPIs();
     expect(await performancePage.getCurrentUrl()).toContain('/performance');
   });
+
+  test('PERF-002: search performance reviews @local', async ({ performancePage, page, loggedInPage }) => {
+    await performancePage.gotoReviewList();
+    expect(await performancePage.getCurrentUrl()).toContain('/performance');
+    await performancePage.searchReview('a');
+    await expect(page.locator('.oxd-table')).toBeVisible({ timeout: 15000 });
+  });
 });

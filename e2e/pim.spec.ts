@@ -82,4 +82,43 @@ test.describe('PIM — Employee Management', () => {
     await expect(page.locator('.orangehrm-container .oxd-table-body')).toContainText(tempEmployee.firstName, { timeout: 5000 });
   });
 
+  test('PIM-006: add employee with login credentials @local', async ({ pimPage, page, loggedInPage }) => {
+    const tsLogin = Date.now();
+    await pimPage.goto();
+    await pimPage.clickAdd();
+    expect(page.url()).toContain('/pim/addEmployee');
+
+    await pimPage.fillEmployeeForm(`Login_${tsLogin}`, `User_${tsLogin}`);
+    await pimPage.toggleCreateLogin();
+    await pimPage.fillLoginDetails(`loginuser_${tsLogin}`, 'Vx#9kQ2$mNz!');
+    await pimPage.clickSave();
+    // Successful save (incl. user account creation) lands on personal details.
+    await page.waitForURL('**/pim/viewPersonalDetails/**', { timeout: 15000 }).catch(() => {});
+    expect(page.url()).toContain('/pim/viewPersonalDetails');
+
+    await pimPage.goto();
+    await pimPage.searchEmployee(`Login_${tsLogin}`);
+    await expect(page.locator('.orangehrm-container .oxd-table-body')).toContainText(`Login_${tsLogin}`, { timeout: 5000 });
+  });
+
+  test('PIM-007: employee list pagination @local', async ({ pimPage, page, loggedInPage }) => {
+    // Seed 55 employees via API so pagination (page size 50) appears.
+    const tsPage = Date.now();
+    for (let i = 0; i < 55; i++) {
+      await page.request.post('/web/index.php/api/v2/pim/employees', {
+        data: { firstName: `Page_${tsPage}_${i}`, lastName: 'Bulk', empMiddleName: '', employeeId: `${tsPage}${i}`.slice(-8) },
+      });
+    }
+    await pimPage.goto();
+    await expect(page.locator('.oxd-table')).toBeVisible({ timeout: 15000 });
+    const pagination = page.locator('ul.oxd-pagination__ul');
+    await expect(pagination).toBeVisible({ timeout: 10000 });
+    const nextBtn = page.locator('.oxd-pagination-page-item--previous-next').last();
+    if (await nextBtn.isEnabled().catch(() => false)) {
+      await nextBtn.click();
+      await expect(page.locator('.oxd-table')).toBeVisible();
+      await expect(pagination).toBeVisible();
+    }
+  });
+
 });

@@ -54,8 +54,15 @@ export class PerformancePage extends BasePage {
   }
 
   async searchReview(employeeName?: string, status?: string, fromDate?: string, toDate?: string) {
+    await this.page.locator('.oxd-form').first().waitFor({ state: 'visible', timeout: 20000 });
     if (employeeName) {
-      await this.fillByLabel('Employee Name', employeeName);
+      const hint = this.page.locator('input[placeholder="Type for hints..."]').first();
+      if (await hint.isVisible().catch(() => false)) {
+        await hint.fill(employeeName);
+        await this.page.locator('.oxd-autocomplete-option').first().click({ timeout: 10000 }).catch(() => {});
+      } else {
+        await this.fillByLabel('Employee Name', employeeName);
+      }
     }
     if (status) {
       await this.fillByLabel('Status', status);
