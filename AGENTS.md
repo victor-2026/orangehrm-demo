@@ -84,7 +84,12 @@ npm run test:k6       # k6 load test
 - Pages: https://victor-2026.github.io/orangehrm-demo/ (noindex)
 - Allure TestOps: https://victor2026.testops.cloud/project/1
 
-## Communication — Full File Paths (MANDATORY)
+
+## Subagents & OpenRouter — Free First (Global)
+
+Cross-project rules live in `~/.opencode-memory.md` and `~/.config/opencode/agents/model-resilience.md`. This file does not repeat provider/model-specific details.
+
+## Communication — Full File Paths
 
 In opencode-desktop TUI (macOS): **only `mailto:` is clickable**. file://, /Users/.../path, markdown links = NOT clickable.
 
